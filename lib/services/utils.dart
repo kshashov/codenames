@@ -59,6 +59,62 @@ extension PlayerRoleExtension on PlayerRole {
   }
 }
 
+extension GameStateExtensions on GameState {
+  bool get isRed {
+    switch (this) {
+      case GameState.redPlayersTurn:
+        return true;
+      case GameState.redMastersTurn:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  bool get isBlue {
+    switch (this) {
+      case GameState.bluePlayersTurn:
+        return true;
+      case GameState.blueMastersTurn:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  bool get isMaster {
+    switch (this) {
+      case GameState.redMastersTurn:
+        return true;
+      case GameState.blueMastersTurn:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  bool get isPlayer {
+    switch (this) {
+      case GameState.redPlayersTurn:
+        return true;
+      case GameState.bluePlayersTurn:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  static GameState of(String value) {
+    return GameState.values.firstWhere((element) => element.toString() == value);
+  }
+}
+
+extension WordColorExtensions on WordColor {
+  static WordColor of(String value) {
+    return WordColor.values.firstWhere((element) => element.toString() == value);
+  }
+}
+
 extension IterableExtension<T> on Iterable<T> {
   T? firstWhereOrNull(bool Function(T element) test) {
     for (var element in this) {

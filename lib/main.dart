@@ -13,7 +13,7 @@ import 'services/models.dart';
 void main() async {
   await dotenv.load(fileName: ".env");
 
-  Firebase.initializeApp(
+  await Firebase.initializeApp(
       options: FirebaseOptions(
           apiKey: dotenv.env['FIREBASE_API_KEY']!,
           authDomain: 'codenames-d55cd.firebaseapp.com',

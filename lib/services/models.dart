@@ -2,6 +2,9 @@ import 'package:myapp/services/utils.dart';
 import 'package:uuid/uuid.dart';
 
 class User {
+  static const idKey = 'id';
+  static const nameKey = 'name';
+
   late String id;
   late String name;
 
@@ -9,14 +12,14 @@ class User {
 
   User.fromJson(Map<dynamic, dynamic> userMap) {
     const uuid = Uuid();
-    id = userMap['id'] ?? uuid.v1();
-    name = userMap['name'] ?? "NoName";
+    id = userMap[idKey] ?? uuid.v1();
+    name = userMap[nameKey] ?? "NoName";
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'name': name,
+      idKey: id,
+      nameKey: name,
     };
   }
 }
@@ -24,7 +27,6 @@ class User {
 enum PlayerRole { spectator, bluePlayer, blueMaster, redPlayer, redMaster }
 
 class Player {
-  static const playersKey = 'players';
   static const idKey = 'id';
   static const nameKey = 'name';
   static const onlineKey = 'online';
@@ -78,6 +80,9 @@ class Player {
 class Lobby {
   static const lobbiesKey = 'lobbies';
   static const infoKey = 'info';
+  static const playersKey = 'players';
+  static const gameKey = 'game';
+  static const wordsKey = 'words';
 }
 
 class LobbyInfo {
@@ -97,5 +102,82 @@ class LobbyInfo {
     return {
       lockedKey: locked,
     };
+  }
+}
+
+enum GameState { preparing, redPlayersTurn, redMastersTurn, bluePlayersTurn, blueMastersTurn, redWon, blueWon }
+
+class Clue {
+  static const textKey = 'text';
+  static const countKey = 'count';
+  static const openedCountKey = 'openedCount';
+
+  late final String text;
+  late final int count;
+  late final int openedCount;
+
+  Clue({required this.text, required this.count, required this.openedCount});
+
+  Clue.fromJson(Map<String, dynamic> lobbyMap) {
+    text = lobbyMap[textKey];
+    count = lobbyMap[countKey];
+    openedCount = lobbyMap[openedCountKey];
+  }
+
+  Map<String, dynamic> toJson() {
+    return {textKey: text, countKey: count, openedCountKey: openedCount};
+  }
+}
+
+class Game {
+  static const stateKey = 'state';
+  static const clueKey = 'clue';
+
+  late final GameState state;
+  late final Clue? clue;
+
+  Game({required this.state, required this.clue});
+
+  Game.fromJson(Map<String, dynamic> lobbyMap) {
+    state = GameStateExtensions.of(lobbyMap[stateKey]);
+    if (lobbyMap[clueKey] != null) {
+      clue = Clue.fromJson(lobbyMap[clueKey]);
+    } else {
+      clue = null;
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    return {stateKey: state.toString(), clueKey: clue?.toJson()};
+  }
+}
+
+enum WordColor { red, blue, grey, black }
+
+class Word {
+  static const textKey = 'text';
+  static const colorKey = 'color';
+  static const revealedKey = 'revealed';
+
+  late final String id; // not exposed
+  late final String text;
+  late final WordColor color;
+  late final bool revealed; // exposed only if true
+
+  Word({required this.id, required this.text, required this.color, this.revealed = false});
+
+  Word.fromJson(Map<String, dynamic> lobbyMap, String index) {
+    id = index;
+    text = lobbyMap[textKey];
+    color = WordColorExtensions.of(lobbyMap[colorKey]);
+    revealed = lobbyMap[revealedKey] ?? false;
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> word = {textKey: text, colorKey: color.toString()};
+    if (revealed) {
+      word[revealedKey] = revealed;
+    }
+    return word;
   }
 }

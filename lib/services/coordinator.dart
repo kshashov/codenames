@@ -10,14 +10,28 @@ class LobbyCoordinator with ChangeNotifier, DiagnosticableTreeMixin {
   }
 
   Future<String> registerLobby(User user) async {
-    // WriteBatch batch = FirebaseDatabase.instance.batch();
+    // TODO use batch
+
+    var words = List<dynamic>.generate(25, (i) {
+      final text = 'testWord#' + i.toString();
+      final color = i < 5
+          ? WordColor.red
+          : (i < 10
+              ? WordColor.blue
+              : i < 11
+                  ? WordColor.black
+                  : WordColor.grey);
+      return Word(id: i.toString(), text: text, color: color).toJson();
+    });
 
     var lobbyRef = FirebaseDatabase.instance.ref(Lobby.lobbiesKey).push();
     await lobbyRef.set({
-      Lobby.infoKey: {LobbyInfo.lockedKey: false}
+      Lobby.infoKey: {LobbyInfo.lockedKey: false},
+      Lobby.gameKey: {Game.stateKey: GameState.preparing.toString(), Game.clueKey: null},
+      Lobby.wordsKey: words
     });
 
-    await lobbyRef.child("${Player.playersKey}/${user.id}").set(Player(
+    await lobbyRef.child("${Lobby.playersKey}/${user.id}").set(Player(
           id: user.id,
           name: user.name,
           host: true,
@@ -25,9 +39,6 @@ class LobbyCoordinator with ChangeNotifier, DiagnosticableTreeMixin {
           online: false,
           role: PlayerRole.spectator,
         ).toJson());
-    // batch.set(playerRef, Player(id: user.id, name: user.name, host: true, current: true, online: false, role: PlayerRole.spectator).toJson());
-
-    // await batch.commit();
 
     return lobbyRef.key!;
   }

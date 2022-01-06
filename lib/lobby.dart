@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:myapp/game.dart';
 import 'package:myapp/player.dart';
 import 'package:myapp/services/lobby.dart';
 import 'package:myapp/services/models.dart';
@@ -50,12 +51,13 @@ class _LobbyPageState extends State<LobbyPage> {
                         color: Colors.redAccent,
                         onBecomeMaster: () => _bloc.becomeRedMaster(),
                         onBecomePlayer: () => _bloc.becomeRedPlayer(),
+                        score: _bloc.redScore,
                         masters: _bloc.redMasters,
                         players: _bloc.redPlayers,
                         currentTeam: snapshot.requireData.isRed),
                   )
                 ]),
-                const Expanded(child: Center(child: Text('GAME TODO'))),
+                Expanded(child: GameWidget()),
                 Column(children: [
                   SeededStreamBuilder<PlayerRole>(
                     stream: _bloc.userRole,
@@ -64,6 +66,7 @@ class _LobbyPageState extends State<LobbyPage> {
                         color: Colors.blueAccent,
                         onBecomeMaster: () => _bloc.becomeBlueMaster(),
                         onBecomePlayer: () => _bloc.becomeBluePlayer(),
+                        score: _bloc.blueScore,
                         masters: _bloc.blueMasters,
                         players: _bloc.bluePlayers,
                         currentTeam: snapshot.requireData.isBlue),
@@ -181,7 +184,7 @@ class LobbySummaryDialog extends StatelessWidget {
                       _userBloc.rename(_name);
                       _lobbyBloc.renameUser(_name);
                     },
-                    child: Text('Save'))),
+                    child: const Text('Save'))),
             initialValue: _name,
             onChanged: (value) => _name = value,
           )),
@@ -234,13 +237,13 @@ class LobbySummaryDialog extends StatelessWidget {
         if (!isSpectator)
           ElevatedButton(
             onPressed: () => _lobbyBloc.becomeSpectator(),
-            child: const Text('Become spectator'),
+            child: const Text('Become Spectator'),
           ),
-        ElevatedButton(
-          style: ButtonStyle(backgroundColor: MaterialStateProperty.all<Color>(Colors.redAccent)),
-          onPressed: () => _lobbyBloc.leave(),
-          child: const Text('Leave'),
-        )
+        // ElevatedButton(
+        //   style: ButtonStyle(backgroundColor: MaterialStateProperty.all<Color>(Colors.redAccent)),
+        //   onPressed: () => _lobbyBloc.leave(),
+        //   child: const Text('Leave'),
+        // )
       ],
     );
   }
@@ -269,12 +272,12 @@ class LobbySummaryDialog extends StatelessWidget {
     if (snapshot.requireData) {
       return ElevatedButton(
         onPressed: () => _lobbyBloc.unlockTeams(),
-        child: const Text('Unlock'),
+        child: const Text('Unlock Teams'),
       );
     } else {
       return ElevatedButton(
         onPressed: () => _lobbyBloc.lockTeams(),
-        child: const Text('Lock'),
+        child: const Text('Lock Teams'),
       );
     }
   }
@@ -284,6 +287,7 @@ class TeamWidget extends StatelessWidget {
   final MaterialAccentColor color;
   final Function() onBecomeMaster;
   final Function() onBecomePlayer;
+  final Stream<int> score;
   final Stream<List<Player>> masters;
   final Stream<List<Player>> players;
   final bool currentTeam;
@@ -297,6 +301,7 @@ class TeamWidget extends StatelessWidget {
       required this.color,
       required this.onBecomeMaster,
       required this.onBecomePlayer,
+      required this.score,
       required this.masters,
       required this.players,
       required this.currentTeam})
@@ -325,15 +330,29 @@ class TeamWidget extends StatelessWidget {
                     color: color.shade100,
                   ),
                   const SizedBox(height: 10),
+                  StreamBuilder(
+                    stream: score,
+                    builder: (context, snapshot) => Text(
+                      "${snapshot.requireData} words left",
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // Divider(
+                  //   height: 15,
+                  //   color: color.shade100,
+                  // ),
+                  const SizedBox(height: 10),
                   Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: PlayersWrap(title: 'Players:', players: players)),
+                      child: PlayersWrap(title: 'Operatives:', players: players)),
                   SeededStreamBuilder<PlayerRole>(
                       stream: _bloc.userRole,
-                      builder: (context, snapshot) => (!locked.requireData &&
-                              (!currentTeam || !snapshot.requireData.isPlayer))
-                          ? OutlinedButton(child: const Text('Become Player'), onPressed: () => onBecomePlayer.call())
-                          : const SizedBox.shrink())
+                      builder: (context, snapshot) =>
+                          (!locked.requireData && (!currentTeam || !snapshot.requireData.isPlayer))
+                              ? OutlinedButton(
+                                  child: const Text('Become Operative'), onPressed: () => onBecomePlayer.call())
+                              : const SizedBox.shrink())
                 ]),
                 const SizedBox(height: 10),
                 Column(children: [
