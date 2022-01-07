@@ -1,4 +1,4 @@
-import 'package:myapp/services/utils.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/utils.dart';
 import 'package:uuid/uuid.dart';
 
 class User {

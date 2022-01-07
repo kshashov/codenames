@@ -1,21 +1,21 @@
+import 'package:codenames/org/github/kshashov/codenames/home.dart';
+import 'package:codenames/org/github/kshashov/codenames/lobby.dart';
+import 'package:codenames/org/github/kshashov/codenames/page.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/coordinator.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/lobby.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/models.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/user.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:myapp/home.dart';
-import 'package:myapp/lobby.dart';
-import 'package:myapp/services/coordinator.dart';
-import 'package:myapp/services/lobby.dart';
-import 'package:myapp/services/user.dart';
 import 'package:provider/provider.dart';
 
-import 'services/models.dart';
-
 void main() async {
-  await dotenv.load(fileName: ".env");
+  // await dotenv.load(fileName: ".env");
 
   await Firebase.initializeApp(
-      options: FirebaseOptions(
-          apiKey: dotenv.env['FIREBASE_API_KEY']!,
+      options: const FirebaseOptions(
+          apiKey: 'AIzaSyAuUR5J9GOfboywRq7Id07KCJYDSKv2nb8',
+          //dotenv.env['FIREBASE_API_KEY']!,
           authDomain: 'codenames-d55cd.firebaseapp.com',
           databaseURL: 'https://codenames-d55cd-default-rtdb.firebaseio.com',
           projectId: 'codenames-d55cd',
@@ -68,11 +68,11 @@ class CodeNamesApp extends StatelessWidget {
                             future: context.watch<LobbyCoordinator>().hasLobby(id),
                             builder: (context, snapshot) {
                               if (snapshot.hasError) {
-                                return Scaffold(body: Text(snapshot.error.toString()));
+                                return TextPage(snapshot.error.toString());
                               }
 
                               if (!snapshot.hasData) {
-                                return const Scaffold(body: Text('Searching for lobby'));
+                                return const TextPage('Searching for lobby');
                               }
 
                               if (snapshot.requireData) {
@@ -80,28 +80,30 @@ class CodeNamesApp extends StatelessWidget {
                                     create: (context) => LobbyBloc(id: id, user: userSnapshot.requireData),
                                     dispose: (context, value) => value.dispose(),
                                     builder: (context, child) => StreamBuilder<bool>(
-                                          stream: context.watch<LobbyBloc>().loading,
+                                      stream: context.watch<LobbyBloc>().loading,
                                           builder: (context, loadingSnapshot) =>
                                               loadingSnapshot.hasData && !loadingSnapshot.requireData
-                                                  ? LobbyPage(
+                                                  ? CodeNamesPage(
+                                                      child: LobbyPage(
                                                       id: id,
                                                       user: userSnapshot.requireData,
-                                                    )
-                                                  : Scaffold(body: Text('Loading')),
+                                                    ))
+                                                  : const TextPage('Loading'),
                                         ));
                               } else {
-                                return Scaffold(body: Text('Lobby not found!'));
+                                return const TextPage('Lobby not found!');
                               }
                             },
                           );
                         } else {
                           // Home
-                          return HomePage(
+                          return CodeNamesPage(
+                              child: HomePage(
                             user: userSnapshot.requireData,
-                          );
+                          ));
                         }
                       } else {
-                        return const Text('loading');
+                        return const TextPage('loading');
                       }
                     });
               });

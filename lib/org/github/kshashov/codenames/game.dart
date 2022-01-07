@@ -1,10 +1,10 @@
+import 'package:codenames/org/github/kshashov/codenames/services/lobby.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/models.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/utils.dart';
+import 'package:codenames/org/github/kshashov/codenames/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:myapp/services/lobby.dart';
-import 'package:myapp/services/models.dart';
-import 'package:myapp/services/utils.dart';
-import 'package:myapp/utils.dart';
 import 'package:provider/src/provider.dart';
 
 class GameWidget extends StatelessWidget {
@@ -22,10 +22,10 @@ class GameWidget extends StatelessWidget {
             !snapshot.requireData.isRed && !snapshot.requireData.isBlue
                 ? const SizedBox.shrink()
                 : Column(children: [
-                    ClueWidget(snapshot.requireData),
-                    const SizedBox(height: 10),
-                    GameActions(snapshot.requireData)
-                  ])
+              ClueWidget(snapshot.requireData),
+              const SizedBox(height: 10),
+              GameActions(snapshot.requireData)
+            ])
           ]);
         });
   }

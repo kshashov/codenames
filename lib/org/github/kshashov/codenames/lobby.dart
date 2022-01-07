@@ -1,15 +1,15 @@
 import 'dart:ui';
 
+import 'package:codenames/org/github/kshashov/codenames/game.dart';
+import 'package:codenames/org/github/kshashov/codenames/log.dart';
+import 'package:codenames/org/github/kshashov/codenames/player.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/lobby.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/models.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/user.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/utils.dart';
+import 'package:codenames/org/github/kshashov/codenames/summary_dialog.dart';
+import 'package:codenames/org/github/kshashov/codenames/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:myapp/game.dart';
-import 'package:myapp/log.dart';
-import 'package:myapp/player.dart';
-import 'package:myapp/services/lobby.dart';
-import 'package:myapp/services/models.dart';
-import 'package:myapp/services/user.dart';
-import 'package:myapp/services/utils.dart';
-import 'package:myapp/summary_dialog.dart';
-import 'package:myapp/utils.dart';
 import 'package:provider/src/provider.dart';
 
 class LobbyPage extends StatefulWidget {
@@ -37,10 +37,9 @@ class _LobbyPageState extends State<LobbyPage> {
   Widget build(BuildContext context) {
     _bloc = context.watch<LobbyBloc>();
 
-    return Scaffold(
-        body: Center(
-            child: Container(
-      constraints: BoxConstraints(minWidth: 500, maxWidth: 1500),
+    return Center(
+        child: Container(
+      constraints: const BoxConstraints(minWidth: 500, maxWidth: 1500),
       child: Column(
         children: [
           LobbyHeader(),
@@ -83,13 +82,13 @@ class _LobbyPageState extends State<LobbyPage> {
                           players: _bloc.bluePlayers,
                           currentTeam: snapshot.requireData.isBlue),
                     ),
-                    LogWidget()
+                    const LogWidget()
                   ]))
             ],
           ))
         ],
       ),
-    )));
+    ));
   }
 }
 

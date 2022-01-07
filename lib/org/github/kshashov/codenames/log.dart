@@ -1,8 +1,8 @@
+import 'package:codenames/org/github/kshashov/codenames/services/lobby.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/models.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/utils.dart';
+import 'package:codenames/org/github/kshashov/codenames/utils.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:myapp/services/lobby.dart';
-import 'package:myapp/services/models.dart';
-import 'package:myapp/services/utils.dart';
-import 'package:myapp/utils.dart';
 import 'package:provider/src/provider.dart';
 
 class LogWidget extends StatelessWidget {

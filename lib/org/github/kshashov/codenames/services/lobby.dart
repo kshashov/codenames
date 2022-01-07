@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'dart:math';
 
+import 'package:codenames/org/github/kshashov/codenames/services/utils.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:myapp/services/utils.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'models.dart';
@@ -15,6 +16,9 @@ class LobbyBloc {
   late DatabaseReference _gameRef;
   late DatabaseReference _wordsRef;
   late DatabaseReference _logRef;
+  List<String> _stringWords =
+      'рука;друг;глаз;голова;ребёнок;сила;отец;проблема;голос;ночь;свет;душа;минута;язык;любовь;президент;стена;интерес;лес;игра;кровь;картина;доллар;музыка;писатель;самолёт;берег;песня;круг;поэт;сон;удар;линия;доктор;художник;волос;ветер;грудь;сад;камень;река;сфера;воля;снег;деревня;немец;победа;звезда;карман;кухня;зуб;актёр;чёрт;дед;чай;зима;студент;секунда;бабушка;трубка;газ;улыбка;май;остров;волна;птица;тень;ужас;декабрь;цветок;весна;трава;князь;рыбка;дождь;лоб;восток;тишина;подарок;царь;смех;стакан;экран;парк;страсть;формула;мост;лев;корень;буква;лёд;цифра;полоса;куст;кость;ручка;металл;поэзия;краска;мечта;почва;король;шанс;сумка;песок;сказка;хозяйка;дочка;танец;пенсия;пыль;москвич;корова;Париж;туфля;трамвай;кошка;поезд;щётка;Бразилия;тарелка;Лондон;лопата;слон;Китай;крыша;пират;ящик;Африка;посол;бутылка;замок;пилот;веер;пальма;мышь;луна;кровать;день;кит;градус;принцесса;спутник;батарея;няня;вишня;арбуз;заяц;лиса;крест;нож;Кремль;книга;торт;стул;клоун;шоколад;банан;конфетка;куб;туман;лягушка;мамонт;матрёшка;лимон;клубничка;муза;нос;бумага;радуга;рояль;салат;роза;шарф;паук;тигр;трактор;мельница;свадьба;водка;ключ;Техас;Испания;крокодил;медведь;верблюд;динозавр;леопард;панда;зебра;Венера;'
+          .split(';');
 
   StreamSubscription<DatabaseEvent>? _lobbyInfoSubscription;
   StreamSubscription<DatabaseEvent>? _playersSubscription;
@@ -164,9 +168,56 @@ class LobbyBloc {
   }
 
   resetGame() async {
-    await _gameRef.update(Game(clue: null, state: GameState.blueMastersTurn).toJson());
     await _logRef.set({});
-    // TODO reset words
+    await _gameRef.update(Game(clue: null, state: await pushNewWords()).toJson());
+  }
+
+  Future<GameState> pushNewWords() async {
+    // if (_stringWords == null) {
+    //   // TODO Load words from web
+    //   var wordsFile = await rootBundle.loadString('assets/words.txt');
+    //   _stringWords = wordsFile.split(';');
+    // }
+
+    List<int> wordTextIndexes = [];
+    Random random = Random();
+    while (wordTextIndexes.length < 25) {
+      int number = random.nextInt(_stringWords.length);
+      if (!wordTextIndexes.contains(number)) {
+        wordTextIndexes.add(number);
+      }
+    }
+
+    GameState state;
+    WordColor color1;
+    WordColor color2;
+    if (random.nextBool()) {
+      state = GameState.redMastersTurn;
+      color1 = WordColor.red;
+      color2 = WordColor.blue;
+    } else {
+      state = GameState.blueMastersTurn;
+      color1 = WordColor.blue;
+      color2 = WordColor.red;
+    }
+
+    var wordColors = List.generate(
+        25,
+        (i) => i < 9
+            ? color1
+            : (i < 17
+                ? color2
+                : i < 18
+                    ? WordColor.black
+                    : WordColor.grey));
+    wordColors.shuffle();
+
+    var words = List<dynamic>.generate(25, (i) {
+      return Word(id: i.toString(), text: _stringWords[wordTextIndexes[i]], color: wordColors[i]).toJson();
+    });
+
+    await _wordsRef.set(words);
+    return state;
   }
 
   unlockTeams() async {

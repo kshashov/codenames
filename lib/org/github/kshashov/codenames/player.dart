@@ -1,10 +1,9 @@
+import 'package:codenames/org/github/kshashov/codenames/services/lobby.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/models.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/user.dart';
+import 'package:codenames/org/github/kshashov/codenames/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:myapp/services/lobby.dart';
-import 'package:myapp/services/user.dart';
-import 'package:myapp/utils.dart';
 import 'package:provider/src/provider.dart';
-
-import 'services/models.dart';
 
 class PlayersWrap extends StatelessWidget {
   final String? title;
@@ -13,13 +12,12 @@ class PlayersWrap extends StatelessWidget {
   final bool showIfNone;
   final BuildContext context;
 
-  PlayersWrap(
-      {Key? key,
-      required this.players,
-      this.title,
-      this.direction = Axis.vertical,
-      this.showIfNone = true,
-      required this.context})
+  PlayersWrap({Key? key,
+    required this.players,
+    this.title,
+    this.direction = Axis.vertical,
+    this.showIfNone = true,
+    required this.context})
       : super(key: key);
 
   @override
@@ -29,31 +27,31 @@ class PlayersWrap extends StatelessWidget {
         initialData: const [],
         builder: (context, snapshot) => (snapshot.requireData.isNotEmpty || showIfNone)
             ? Flex(
-                direction: direction,
-                children: [
-                  if (title != null)
-                    Text(
-                      title!,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  // const SizedBox(height: 10),
-                  Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5),
-                      child: Wrap(
-                        spacing: 3,
-                        children: [
-                          for (var player in snapshot.requireData)
-                            Padding(
-                              padding: EdgeInsets.symmetric(vertical: 2),
-                              child: PlayerChip(
-                                player: player,
-                                context: this.context,
-                              ),
-                            )
-                        ],
-                      ))
-                ],
-              )
+          direction: direction,
+          children: [
+            if (title != null)
+              Text(
+                title!,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            // const SizedBox(height: 10),
+            Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Wrap(
+                  spacing: 3,
+                  children: [
+                    for (var player in snapshot.requireData)
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 2),
+                        child: PlayerChip(
+                          player: player,
+                          context: this.context,
+                        ),
+                      )
+                  ],
+                ))
+          ],
+        )
             : const SizedBox.shrink());
   }
 }

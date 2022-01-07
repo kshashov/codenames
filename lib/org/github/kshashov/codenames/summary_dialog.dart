@@ -1,11 +1,11 @@
+import 'package:codenames/org/github/kshashov/codenames/player.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/lobby.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/models.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/user.dart';
+import 'package:codenames/org/github/kshashov/codenames/services/utils.dart';
+import 'package:codenames/org/github/kshashov/codenames/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:myapp/player.dart';
-import 'package:myapp/services/lobby.dart';
-import 'package:myapp/services/models.dart';
-import 'package:myapp/services/user.dart';
-import 'package:myapp/services/utils.dart';
-import 'package:myapp/utils.dart';
 import 'package:provider/src/provider.dart';
 
 class LobbySummaryDialog extends StatelessWidget {
@@ -59,23 +59,23 @@ class LobbySummaryDialog extends StatelessWidget {
         children: [
           Expanded(
               child: Container(
-            padding: const EdgeInsets.all(10),
-            color: Theme.of(this.context).shadowColor,
-            child: Column(
-              children: [
-                SeededStreamBuilder<Player>(
-                  stream: _lobbyBloc.host,
-                  builder: (context, snapshot) => hostButtons(snapshot.requireData.id == _lobbyBloc.user.id),
+                padding: const EdgeInsets.all(10),
+                color: Theme.of(this.context).shadowColor,
+                child: Column(
+                  children: [
+                    SeededStreamBuilder<Player>(
+                      stream: _lobbyBloc.host,
+                      builder: (context, snapshot) => hostButtons(snapshot.requireData.id == _lobbyBloc.user.id),
+                    ),
+                    const SizedBox(height: 10),
+                    SeededStreamBuilder<PlayerRole>(
+                      stream: _lobbyBloc.userRole,
+                      builder: (context, snapshot) => commonButtons(snapshot.requireData.isSpectator),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                SeededStreamBuilder<PlayerRole>(
-                  stream: _lobbyBloc.userRole,
-                  builder: (context, snapshot) => commonButtons(snapshot.requireData.isSpectator),
-                ),
-                const SizedBox(height: 10),
-              ],
-            ),
-          ))
+              ))
         ],
       ),
     ]);
@@ -114,7 +114,7 @@ class LobbySummaryDialog extends StatelessWidget {
       children: [
         ElevatedButton(
           onPressed: () => _lobbyBloc.resetGame(),
-          child: const Text('Reset'),
+          child: const Text('Start Game'),
         ),
         SeededStreamBuilder<bool>(
           stream: _lobbyBloc.locked,
