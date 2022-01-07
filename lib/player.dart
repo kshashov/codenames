@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:myapp/services/lobby.dart';
+import 'package:myapp/services/user.dart';
 import 'package:myapp/utils.dart';
+import 'package:provider/src/provider.dart';
 
 import 'services/models.dart';
 
@@ -8,8 +11,15 @@ class PlayersWrap extends StatelessWidget {
   final Stream<List<Player>> players;
   final Axis direction;
   final bool showIfNone;
+  final BuildContext context;
 
-  PlayersWrap({Key? key, required this.players, this.title, this.direction = Axis.vertical, this.showIfNone = true})
+  PlayersWrap(
+      {Key? key,
+      required this.players,
+      this.title,
+      this.direction = Axis.vertical,
+      this.showIfNone = true,
+      required this.context})
       : super(key: key);
 
   @override
@@ -35,7 +45,10 @@ class PlayersWrap extends StatelessWidget {
                           for (var player in snapshot.requireData)
                             Padding(
                               padding: EdgeInsets.symmetric(vertical: 2),
-                              child: PlayerChip(player: player),
+                              child: PlayerChip(
+                                player: player,
+                                context: this.context,
+                              ),
                             )
                         ],
                       ))
@@ -47,16 +60,37 @@ class PlayersWrap extends StatelessWidget {
 
 class PlayerChip extends StatelessWidget {
   final Player player;
+  final BuildContext context;
 
-  const PlayerChip({Key? key, required this.player}) : super(key: key);
+  const PlayerChip({Key? key, required this.player, required this.context}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    var chip = Chip(label: Text(player.fullName), backgroundColor: Theme.of(context).chipTheme.backgroundColor);
+    final userBloc = this.context.watch<UserBloc>();
+    final bloc = this.context.watch<LobbyBloc>();
+
+    Widget chip = Chip(label: Text(player.fullName), backgroundColor: Theme.of(context).chipTheme.backgroundColor);
     if (player.online) {
-      return Badge(child: chip, top: 6, right: 6, minSize: 6);
-    } else {
-      return chip;
+      chip = Badge(child: chip, top: 6, right: 6, minSize: 6);
     }
+
+    return SeededStreamBuilder<Player>(
+        stream: bloc.host,
+        builder: (context, snapshot) {
+          var user = userBloc.user.valueOrNull;
+          if ((snapshot.requireData.id == user?.id) && (player.id != user?.id)) {
+            return PopupMenuButton(
+              itemBuilder: (BuildContext context) => [
+                PopupMenuItem(
+                  onTap: () => bloc.makeHost(player),
+                  child: const Text("Make host"),
+                )
+              ],
+              child: chip,
+            );
+          }
+
+          return chip;
+        });
   }
 }

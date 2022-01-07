@@ -83,6 +83,7 @@ class Lobby {
   static const playersKey = 'players';
   static const gameKey = 'game';
   static const wordsKey = 'words';
+  static const logKey = 'log';
 }
 
 class LobbyInfo {
@@ -179,5 +180,40 @@ class Word {
       word[revealedKey] = revealed;
     }
     return word;
+  }
+}
+
+class LogEntry {
+  static const String textKey = 'text';
+  static const String whoKey = 'who';
+  static const String wordKey = 'word';
+
+  late final String text;
+  late final String? who; // exposed only if no null
+  late final Word? word; // exposed only if no null
+
+  LogEntry({required this.text, this.word, this.who});
+
+  LogEntry.fromJson(Map<String, dynamic> lobbyMap) {
+    text = lobbyMap[textKey];
+    if (lobbyMap[wordKey] != null) {
+      word = Word.fromJson(lobbyMap[wordKey], ''); // we don't need id here
+    } else {
+      word = null;
+    }
+    who = lobbyMap[whoKey];
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> entry = {textKey: text};
+
+    if (who != null) {
+      entry[whoKey] = who;
+    }
+    if (word != null) {
+      entry[wordKey] = word!.toJson();
+    }
+
+    return entry;
   }
 }

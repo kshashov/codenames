@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import 'models.dart';
 
 extension PlayerRoleExtension on PlayerRole {
@@ -112,6 +114,19 @@ extension GameStateExtensions on GameState {
 extension WordColorExtensions on WordColor {
   static WordColor of(String value) {
     return WordColor.values.firstWhere((element) => element.toString() == value);
+  }
+
+  Color get flutterColor {
+    switch (this) {
+      case WordColor.black:
+        return Colors.black;
+      case WordColor.red:
+        return Colors.redAccent;
+      case WordColor.blue:
+        return Colors.blueAccent;
+      default:
+        return Colors.grey.shade600;
+    }
   }
 }
 

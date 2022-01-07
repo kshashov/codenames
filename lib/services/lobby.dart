@@ -14,11 +14,13 @@ class LobbyBloc {
   late DatabaseReference _lobbyInfoRef;
   late DatabaseReference _gameRef;
   late DatabaseReference _wordsRef;
+  late DatabaseReference _logRef;
 
   StreamSubscription<DatabaseEvent>? _lobbyInfoSubscription;
   StreamSubscription<DatabaseEvent>? _playersSubscription;
   StreamSubscription<DatabaseEvent>? _gameSubscription;
   StreamSubscription<DatabaseEvent>? _wordsSubscription;
+  StreamSubscription<DatabaseEvent>? _logSubscription;
 
   final loading = BehaviorSubject<bool>.seeded(true);
 
@@ -40,6 +42,7 @@ class LobbyBloc {
   final state = BehaviorSubject<GameState>.seeded(GameState.preparing);
   final clue = BehaviorSubject<Clue?>.seeded(null);
   final words = BehaviorSubject<List<Word>>.seeded([]);
+  final logs = BehaviorSubject<List<LogEntry>>.seeded([]);
 
   final redScore = BehaviorSubject<int>.seeded(0);
   final blueScore = BehaviorSubject<int>.seeded(0);
@@ -59,6 +62,7 @@ class LobbyBloc {
     _playersRef = _lobbyRef.child(Lobby.playersKey);
     _gameRef = _lobbyRef.child(Lobby.gameKey);
     _wordsRef = _lobbyRef.child(Lobby.wordsKey);
+    _logRef = _lobbyRef.child(Lobby.logKey);
 
     _playersRef.child(user.id).onDisconnect().update({Player.onlineKey: false});
 
@@ -148,10 +152,20 @@ class LobbyBloc {
       var blueRevealed = words.where((element) => element.revealed && (element.color == WordColor.blue)).length;
       blueScore.add(blueAll - blueRevealed);
     });
+
+    _logSubscription = _logRef.onValue.listen((event) {
+      if (!event.snapshot.exists) {
+        this.logs.add([]);
+      }
+
+      var logs = event.snapshot.children.map((e) => LogEntry.fromJson(e.value as dynamic)).toList();
+      this.logs.add(logs);
+    });
   }
 
   resetGame() async {
     await _gameRef.update(Game(clue: null, state: GameState.blueMastersTurn).toJson());
+    await _logRef.set({});
     // TODO reset words
   }
 
@@ -187,6 +201,11 @@ class LobbyBloc {
     await _playersRef.child(user.id).update({Player.nameKey: value});
   }
 
+  makeHost(Player player) async {
+    await _playersRef.child(player.id).update({Player.hostKey: true});
+    await _playersRef.child(user.id).update({Player.hostKey: false});
+  }
+
   endPlayerTurn() async {
     if (state.valueOrNull == GameState.redPlayersTurn) {
       await _gameRef.update({Game.clueKey: null, Game.stateKey: GameState.blueMastersTurn.toString()});
@@ -196,11 +215,23 @@ class LobbyBloc {
   }
 
   sendClue(Clue clue) async {
-    if (state.valueOrNull == GameState.redMastersTurn) {
+    var isBlue = state.valueOrNull == GameState.redMastersTurn;
+    var isRed = state.valueOrNull == GameState.blueMastersTurn;
+    if (isBlue) {
       await _gameRef.update({Game.clueKey: clue.toJson(), Game.stateKey: GameState.redPlayersTurn.toString()});
-    } else if (state.valueOrNull == GameState.blueMastersTurn) {
+    } else if (isRed) {
       await _gameRef.update({Game.clueKey: clue.toJson(), Game.stateKey: GameState.bluePlayersTurn.toString()});
     }
+
+    var color = isBlue
+        ? WordColor.blue
+        : isRed
+            ? WordColor.red
+            : WordColor.grey;
+
+    await _logRef.push().set(LogEntry(
+            who: user.name, text: 'gives clue', word: Word(id: '', text: "${clue.text} ${clue.count}", color: color))
+        .toJson());
   }
 
   revealWord(Word word) async {
@@ -209,6 +240,7 @@ class LobbyBloc {
     var redLeft = redScore.valueOrNull!;
     var blueLeft = blueScore.valueOrNull!;
 
+    await _logRef.push().set(LogEntry(who: user.name, text: 'taps', word: word).toJson());
     await _wordsRef.child(word.id).update({Word.revealedKey: true});
 
     // black word = lose
@@ -244,13 +276,12 @@ class LobbyBloc {
   }
 
   dispose() {
-    // TODO invoke in right place
-
     print('LobbyBloc dispose');
 
     _lobbyInfoSubscription?.cancel();
     _playersSubscription?.cancel();
     _gameSubscription?.cancel();
     _wordsSubscription?.cancel();
+    _logSubscription?.cancel();
   }
 }

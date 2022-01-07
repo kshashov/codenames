@@ -28,7 +28,8 @@ class LobbyCoordinator with ChangeNotifier, DiagnosticableTreeMixin {
     await lobbyRef.set({
       Lobby.infoKey: {LobbyInfo.lockedKey: false},
       Lobby.gameKey: {Game.stateKey: GameState.preparing.toString(), Game.clueKey: null},
-      Lobby.wordsKey: words
+      Lobby.wordsKey: words,
+      Lobby.logKey: []
     });
 
     await lobbyRef.child("${Lobby.playersKey}/${user.id}").set(Player(

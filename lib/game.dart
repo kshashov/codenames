@@ -45,8 +45,7 @@ class WordsWidget extends StatelessWidget {
         builder: (context, roleSnapshot) => SeededStreamBuilder<List<Word>>(
             stream: bloc.words,
             builder: (context, wordsSnapshot) {
-              return Container(
-                  child: GridView.count(
+              return GridView.count(
                 padding: const EdgeInsets.all(15),
                 scrollDirection: Axis.vertical,
                 shrinkWrap: true,
@@ -57,7 +56,7 @@ class WordsWidget extends StatelessWidget {
                 children: wordsSnapshot.requireData
                     .map((e) => wordWidget(context, roleSnapshot.requireData, e, bloc))
                     .toList(growable: false),
-              ));
+              );
             }));
   }
 
@@ -66,26 +65,15 @@ class WordsWidget extends StatelessWidget {
     Color textColor;
 
     if (role.isMaster || word.revealed) {
-      textColor = Colors.white;
       // Opened word
-      switch (word.color) {
-        case WordColor.black:
-          color = Colors.black;
-          break;
-        case WordColor.red:
-          color = Colors.redAccent;
-          break;
-        case WordColor.blue:
-          color = Colors.blueAccent;
-          break;
-        default:
-          color = Colors.grey.shade600;
-      }
+      textColor = Colors.white;
+      color = word.color.flutterColor;
     } else {
       // Closed word
       color = Theme.of(context).cardColor;
       textColor = Colors.black;
     }
+
     final card = Container(
       key: Key(word.id),
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: color, boxShadow: [

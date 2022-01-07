@@ -2,11 +2,13 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:myapp/game.dart';
+import 'package:myapp/log.dart';
 import 'package:myapp/player.dart';
 import 'package:myapp/services/lobby.dart';
 import 'package:myapp/services/models.dart';
 import 'package:myapp/services/user.dart';
 import 'package:myapp/services/utils.dart';
+import 'package:myapp/summary_dialog.dart';
 import 'package:myapp/utils.dart';
 import 'package:provider/src/provider.dart';
 
@@ -36,56 +38,68 @@ class _LobbyPageState extends State<LobbyPage> {
     _bloc = context.watch<LobbyBloc>();
 
     return Scaffold(
-      body: Center(
-        child: Column(
-          children: [
-            LobbyHeader(),
-            Expanded(
-                child: Row(
-              children: [
-                Column(children: [
-                  SeededStreamBuilder<PlayerRole>(
-                    stream: _bloc.userRole,
-                    builder: (context, snapshot) => TeamWidget(
-                        title: 'RED TEAM',
-                        color: Colors.redAccent,
-                        onBecomeMaster: () => _bloc.becomeRedMaster(),
-                        onBecomePlayer: () => _bloc.becomeRedPlayer(),
-                        score: _bloc.redScore,
-                        masters: _bloc.redMasters,
-                        players: _bloc.redPlayers,
-                        currentTeam: snapshot.requireData.isRed),
-                  )
-                ]),
-                Expanded(child: GameWidget()),
-                Column(children: [
-                  SeededStreamBuilder<PlayerRole>(
-                    stream: _bloc.userRole,
-                    builder: (context, snapshot) => TeamWidget(
-                        title: 'BLUE TEAM',
-                        color: Colors.blueAccent,
-                        onBecomeMaster: () => _bloc.becomeBlueMaster(),
-                        onBecomePlayer: () => _bloc.becomeBluePlayer(),
-                        score: _bloc.blueScore,
-                        masters: _bloc.blueMasters,
-                        players: _bloc.bluePlayers,
-                        currentTeam: snapshot.requireData.isBlue),
-                  )
-                ])
-              ],
-            ))
-          ],
-        ),
+        body: Center(
+            child: Container(
+      constraints: BoxConstraints(minWidth: 500, maxWidth: 1500),
+      child: Column(
+        children: [
+          LobbyHeader(),
+          Expanded(
+              child: Row(
+            children: [
+              Column(children: [
+                Container(
+                    margin: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10),
+                    width: 250,
+                    child: SeededStreamBuilder<PlayerRole>(
+                      stream: _bloc.userRole,
+                      builder: (context, snapshot) => TeamWidget(
+                          title: 'RED TEAM',
+                          color: Colors.redAccent,
+                          onBecomeMaster: () => _bloc.becomeRedMaster(),
+                          onBecomePlayer: () => _bloc.becomeRedPlayer(),
+                          score: _bloc.redScore,
+                          masters: _bloc.redMasters,
+                          players: _bloc.redPlayers,
+                          currentTeam: snapshot.requireData.isRed),
+                    ))
+              ]),
+              Expanded(child: GameWidget()),
+              Container(
+                  margin: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(10),
+                  width: 250,
+                  child: Column(children: [
+                    SeededStreamBuilder<PlayerRole>(
+                      stream: _bloc.userRole,
+                      builder: (context, snapshot) => TeamWidget(
+                          title: 'BLUE TEAM',
+                          color: Colors.blueAccent,
+                          onBecomeMaster: () => _bloc.becomeBlueMaster(),
+                          onBecomePlayer: () => _bloc.becomeBluePlayer(),
+                          score: _bloc.blueScore,
+                          masters: _bloc.blueMasters,
+                          players: _bloc.bluePlayers,
+                          currentTeam: snapshot.requireData.isBlue),
+                    ),
+                    LogWidget()
+                  ]))
+            ],
+          ))
+        ],
       ),
-    );
+    )));
   }
 }
 
 class LobbyHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var userBloc = context.watch<UserBloc>();
-    var bloc = context.watch<LobbyBloc>();
+    final userBloc = context.watch<UserBloc>();
+    final bloc = context.watch<LobbyBloc>();
+    final savedContext = context;
+
     return Padding(
         padding: const EdgeInsets.all(10),
         child: Row(
@@ -122,7 +136,10 @@ class LobbyHeader extends StatelessWidget {
                           const SizedBox(
                             width: 5,
                           ),
-                          PlayerChip(player: snapshot.requireData)
+                          PlayerChip(
+                            player: snapshot.requireData,
+                            context: context,
+                          )
                         ],
                       ),
                     )
@@ -144,142 +161,14 @@ class LobbyHeader extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     onPressed: () => showDialog(
-                          context: context,
-                          builder: (context) => LobbySummaryDialog(bloc, context.watch<UserBloc>()),
+                          context: savedContext,
+                          builder: (context) => LobbySummaryDialog(savedContext),
                         ),
                     label: const Icon(Icons.settings)),
               ),
             )
           ],
         ));
-  }
-}
-
-class LobbySummaryDialog extends StatelessWidget {
-  final LobbyBloc _lobbyBloc;
-  final UserBloc _userBloc;
-  late String _name;
-
-  LobbySummaryDialog(this._lobbyBloc, this._userBloc, {Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    _name = _userBloc.user.valueOrNull!.name;
-
-    var content = Flex(direction: Axis.vertical, mainAxisSize: MainAxisSize.min, children: [
-      const Padding(
-        padding: EdgeInsets.all(10),
-        child: Text('Options', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
-      ),
-      const SizedBox(height: 10),
-      Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: TextFormField(
-            decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                labelText: 'Your Name:',
-                suffix: TextButton(
-                    onPressed: () {
-                      if (_name.isEmpty) return;
-                      _userBloc.rename(_name);
-                      _lobbyBloc.renameUser(_name);
-                    },
-                    child: const Text('Save'))),
-            initialValue: _name,
-            onChanged: (value) => _name = value,
-          )),
-      const SizedBox(height: 10),
-      Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: PlayersWrap(
-            players: _lobbyBloc.spectators,
-            title: 'Spectators: ',
-            direction: Axis.vertical,
-            showIfNone: false,
-          )),
-      const SizedBox(height: 10),
-      Row(
-        children: [
-          Expanded(
-              child: Container(
-            padding: const EdgeInsets.all(10),
-            color: Theme.of(context).shadowColor,
-            child: Column(
-              children: [
-                SeededStreamBuilder<Player>(
-                  stream: _lobbyBloc.host,
-                  builder: (context, snapshot) => hostButtons(snapshot.requireData.id == _lobbyBloc.user.id),
-                ),
-                const SizedBox(height: 10),
-                SeededStreamBuilder<PlayerRole>(
-                  stream: _lobbyBloc.userRole,
-                  builder: (context, snapshot) => commonButtons(snapshot.requireData.isSpectator),
-                ),
-                const SizedBox(height: 10),
-              ],
-            ),
-          ))
-        ],
-      ),
-    ]);
-
-    return Dialog(
-      elevation: 0,
-      child: SizedBox(width: 400, child: content),
-    );
-  }
-
-  Widget commonButtons(bool isSpectator) {
-    return Wrap(
-      spacing: 5,
-      direction: Axis.horizontal,
-      children: [
-        if (!isSpectator)
-          ElevatedButton(
-            onPressed: () => _lobbyBloc.becomeSpectator(),
-            child: const Text('Become Spectator'),
-          ),
-        // ElevatedButton(
-        //   style: ButtonStyle(backgroundColor: MaterialStateProperty.all<Color>(Colors.redAccent)),
-        //   onPressed: () => _lobbyBloc.leave(),
-        //   child: const Text('Leave'),
-        // )
-      ],
-    );
-  }
-
-  Widget hostButtons(bool isHost) {
-    if (!isHost) return SizedBox.shrink();
-
-    return Wrap(
-      spacing: 5,
-      direction: Axis.horizontal,
-      children: [
-        ElevatedButton(
-          onPressed: () => _lobbyBloc.resetGame(),
-          child: const Text('Reset'),
-        ),
-        SeededStreamBuilder<bool>(
-          stream: _lobbyBloc.locked,
-          builder: (context, snapshot) => lockButton(snapshot),
-        ),
-        // TODO make host
-      ],
-    );
-  }
-
-  Widget lockButton(AsyncSnapshot<bool> snapshot) {
-    if (snapshot.requireData) {
-      return ElevatedButton(
-        onPressed: () => _lobbyBloc.unlockTeams(),
-        child: const Text('Unlock Teams'),
-      );
-    } else {
-      return ElevatedButton(
-        onPressed: () => _lobbyBloc.lockTeams(),
-        child: const Text('Lock Teams'),
-      );
-    }
   }
 }
 
@@ -330,8 +219,9 @@ class TeamWidget extends StatelessWidget {
                     color: color.shade100,
                   ),
                   const SizedBox(height: 10),
-                  StreamBuilder(
+                  StreamBuilder<int>(
                     stream: score,
+                    initialData: 0,
                     builder: (context, snapshot) => Text(
                       "${snapshot.requireData} words left",
                       style: const TextStyle(fontSize: 20),
@@ -345,7 +235,7 @@ class TeamWidget extends StatelessWidget {
                   const SizedBox(height: 10),
                   Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: PlayersWrap(title: 'Operatives:', players: players)),
+                      child: PlayersWrap(title: 'Operatives:', players: players, context: context)),
                   SeededStreamBuilder<PlayerRole>(
                       stream: _bloc.userRole,
                       builder: (context, snapshot) =>
@@ -358,7 +248,11 @@ class TeamWidget extends StatelessWidget {
                 Column(children: [
                   Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: PlayersWrap(title: 'Masters:', players: masters)),
+                      child: PlayersWrap(
+                        title: 'Masters:',
+                        players: masters,
+                        context: context,
+                      )),
                   SeededStreamBuilder<PlayerRole>(
                       stream: _bloc.userRole,
                       builder: (context, snapshot) => (!locked.requireData &&
@@ -370,8 +264,7 @@ class TeamWidget extends StatelessWidget {
             ));
 
     return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(15),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           color: Theme.of(context).cardColor,
@@ -382,7 +275,6 @@ class TeamWidget extends StatelessWidget {
                 blurRadius: 20,
                 spreadRadius: 5)
           ]),
-      width: 250,
       child: content,
     );
   }
