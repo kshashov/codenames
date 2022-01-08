@@ -15,7 +15,7 @@ class LobbyCoordinator with ChangeNotifier, DiagnosticableTreeMixin {
     var lobbyRef = FirebaseDatabase.instance.ref(Lobby.lobbiesKey).push();
     await lobbyRef.set({
       Lobby.infoKey: {LobbyInfo.lockedKey: false},
-      Lobby.gameKey: {Game.stateKey: GameState.preparing.toString(), Game.clueKey: null},
+      Lobby.gameKey: {Game.stateKey: GameState.preparing.toString(), Game.clueKey: null, Game.dictionaryKey: ''},
       Lobby.wordsKey: [],
       Lobby.logKey: []
     });

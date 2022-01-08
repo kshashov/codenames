@@ -6,6 +6,7 @@ import 'package:codenames/org/github/kshashov/codenames/services/utils.dart';
 import 'package:codenames/org/github/kshashov/codenames/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/src/provider.dart';
 
 class LobbySummaryDialog extends StatelessWidget {
@@ -55,27 +56,25 @@ class LobbySummaryDialog extends StatelessWidget {
             context: this.context,
           )),
       const SizedBox(height: 10),
+      SeededStreamBuilder<PlayerRole>(
+        stream: _lobbyBloc.userRole,
+        builder: (context, snapshot) => commonButtons(snapshot.requireData.isSpectator),
+      ),
+      const SizedBox(height: 10),
       Row(
         children: [
           Expanded(
               child: Container(
-                padding: const EdgeInsets.all(10),
-                color: Theme.of(this.context).shadowColor,
-                child: Column(
-                  children: [
-                    SeededStreamBuilder<Player>(
-                      stream: _lobbyBloc.host,
-                      builder: (context, snapshot) => hostButtons(snapshot.requireData.id == _lobbyBloc.user.id),
-                    ),
-                    const SizedBox(height: 10),
-                    SeededStreamBuilder<PlayerRole>(
-                      stream: _lobbyBloc.userRole,
-                      builder: (context, snapshot) => commonButtons(snapshot.requireData.isSpectator),
-                    ),
-                    const SizedBox(height: 10),
-                  ],
+            color: Theme.of(this.context).shadowColor,
+            child: Column(
+              children: [
+                SeededStreamBuilder<Player>(
+                  stream: _lobbyBloc.host,
+                  builder: (context, snapshot) => hostButtons(snapshot.requireData.id == _lobbyBloc.user.id),
                 ),
-              ))
+              ],
+            ),
+          ))
         ],
       ),
     ]);
@@ -96,33 +95,26 @@ class LobbySummaryDialog extends StatelessWidget {
             onPressed: () => _lobbyBloc.becomeSpectator(),
             child: const Text('Become Spectator'),
           ),
-        // ElevatedButton(
-        //   style: ButtonStyle(backgroundColor: MaterialStateProperty.all<Color>(Colors.redAccent)),
-        //   onPressed: () => _lobbyBloc.leave(),
-        //   child: const Text('Leave'),
-        // )
       ],
     );
   }
 
   Widget hostButtons(bool isHost) {
-    if (!isHost) return SizedBox.shrink();
+    if (!isHost) return const SizedBox.shrink();
 
-    return Wrap(
-      spacing: 5,
-      direction: Axis.horizontal,
-      children: [
-        ElevatedButton(
-          onPressed: () => _lobbyBloc.resetGame(),
-          child: const Text('Start Game'),
-        ),
-        SeededStreamBuilder<bool>(
-          stream: _lobbyBloc.locked,
-          builder: (context, snapshot) => lockButton(snapshot),
-        ),
-        // TODO make host
-      ],
-    );
+    return Padding(
+        padding: const EdgeInsets.all(10),
+        child: Flex(
+          direction: Axis.vertical,
+          children: [
+            _DictionaryField(_lobbyBloc),
+            const SizedBox(height: 10),
+            SeededStreamBuilder<bool>(
+              stream: _lobbyBloc.locked,
+              builder: (context, snapshot) => lockButton(snapshot),
+            ),
+          ],
+        ));
   }
 
   Widget lockButton(AsyncSnapshot<bool> snapshot) {
@@ -137,5 +129,84 @@ class LobbySummaryDialog extends StatelessWidget {
         child: const Text('Lock Teams'),
       );
     }
+  }
+}
+
+class _DictionaryField extends StatefulWidget {
+  final LobbyBloc _bloc;
+
+  const _DictionaryField(this._bloc, {Key? key}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _DictionaryFieldState();
+}
+
+class _DictionaryFieldState extends State<_DictionaryField> {
+  late TextEditingController _controller;
+  late FToast fToast;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = TextEditingController(text: widget._bloc.dictionary.valueOrNull);
+    fToast = FToast();
+    fToast.init(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SeededStreamBuilder<String>(
+      stream: widget._bloc.dictionary,
+      builder: (context, snapshot) {
+        return Column(children: [
+          TextFormField(
+            decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                labelText: 'Words Pack:',
+                suffix: Wrap(children: [
+                  TextButton(
+                      onPressed: () {
+                        _controller.value = _controller.value.copyWith(text: LobbyBloc.enPackUri);
+                      },
+                      child: const Text('EN')),
+                  TextButton(
+                      onPressed: () {
+                        _controller.value = _controller.value.copyWith(text: LobbyBloc.ruPackUri);
+                      },
+                      child: const Text('RU'))
+                ])),
+            controller: _controller,
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                print(_controller.text);
+                await widget._bloc.tryStartGame(_controller.text);
+              } catch (ex) {
+                fToast.showToast(
+                  toastDuration: const Duration(seconds: 7),
+                  child: Chip(
+                    label: Text(
+                      ex.toString(),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    backgroundColor: Colors.redAccent,
+                  ),
+                );
+              }
+            },
+            child: const Text('Start Game'),
+          )
+        ]);
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }

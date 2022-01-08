@@ -3,11 +3,17 @@ import 'dart:math';
 
 import 'package:codenames/org/github/kshashov/codenames/services/utils.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:http/http.dart' as http;
 import 'package:rxdart/rxdart.dart';
 
 import 'models.dart';
 
 class LobbyBloc {
+  static const enPackUri =
+      'https://gist.githubusercontent.com/kshashov/71a913d15a2aa662cd83a79cdd2a4635/raw/06f4247317ec75da9d6268b4d0de2dbf4be45765/en.txt';
+  static const ruPackUri =
+      'https://gist.githubusercontent.com/kshashov/71a913d15a2aa662cd83a79cdd2a4635/raw/06f4247317ec75da9d6268b4d0de2dbf4be45765/ru.txt';
+
   final String id;
   final User user;
   late DatabaseReference _lobbyRef;
@@ -16,9 +22,6 @@ class LobbyBloc {
   late DatabaseReference _gameRef;
   late DatabaseReference _wordsRef;
   late DatabaseReference _logRef;
-  List<String> _stringWords =
-      'рука;друг;глаз;голова;ребёнок;сила;отец;проблема;голос;ночь;свет;душа;минута;язык;любовь;президент;стена;интерес;лес;игра;кровь;картина;доллар;музыка;писатель;самолёт;берег;песня;круг;поэт;сон;удар;линия;доктор;художник;волос;ветер;грудь;сад;камень;река;сфера;воля;снег;деревня;немец;победа;звезда;карман;кухня;зуб;актёр;чёрт;дед;чай;зима;студент;секунда;бабушка;трубка;газ;улыбка;май;остров;волна;птица;тень;ужас;декабрь;цветок;весна;трава;князь;рыбка;дождь;лоб;восток;тишина;подарок;царь;смех;стакан;экран;парк;страсть;формула;мост;лев;корень;буква;лёд;цифра;полоса;куст;кость;ручка;металл;поэзия;краска;мечта;почва;король;шанс;сумка;песок;сказка;хозяйка;дочка;танец;пенсия;пыль;москвич;корова;Париж;туфля;трамвай;кошка;поезд;щётка;Бразилия;тарелка;Лондон;лопата;слон;Китай;крыша;пират;ящик;Африка;посол;бутылка;замок;пилот;веер;пальма;мышь;луна;кровать;день;кит;градус;принцесса;спутник;батарея;няня;вишня;арбуз;заяц;лиса;крест;нож;Кремль;книга;торт;стул;клоун;шоколад;банан;конфетка;куб;туман;лягушка;мамонт;матрёшка;лимон;клубничка;муза;нос;бумага;радуга;рояль;салат;роза;шарф;паук;тигр;трактор;мельница;свадьба;водка;ключ;Техас;Испания;крокодил;медведь;верблюд;динозавр;леопард;панда;зебра;Венера;'
-          .split(';');
 
   StreamSubscription<DatabaseEvent>? _lobbyInfoSubscription;
   StreamSubscription<DatabaseEvent>? _playersSubscription;
@@ -34,6 +37,7 @@ class LobbyBloc {
   final userRole = BehaviorSubject<PlayerRole>.seeded(PlayerRole.spectator);
   final locked = BehaviorSubject<bool>.seeded(false);
   final online = BehaviorSubject<int>.seeded(0);
+  final dictionary = BehaviorSubject<String>.seeded('');
 
   final spectators = BehaviorSubject<List<Player>>.seeded(List.empty());
   final redMasters = BehaviorSubject<List<Player>>.seeded(List.empty());
@@ -52,15 +56,6 @@ class LobbyBloc {
   final blueScore = BehaviorSubject<int>.seeded(0);
 
   LobbyBloc({required this.id, required this.user}) {
-    // TODO subscribe on all streams
-
-    // TODO @learn WriteBatch batch = FirebaseFirestore.instance.batch();
-    print('LobbyBloc constructor');
-
-    // state.listen((value) {
-    //   print('state ' + value.toString());
-    // });
-
     _lobbyRef = FirebaseDatabase.instance.ref("${Lobby.lobbiesKey}/$id");
     _lobbyInfoRef = _lobbyRef.child(Lobby.infoKey);
     _playersRef = _lobbyRef.child(Lobby.playersKey);
@@ -95,7 +90,7 @@ class LobbyBloc {
     _lobbyInfoSubscription = _lobbyInfoRef.onValue.listen((event) {
       if (!event.snapshot.exists) {
         return;
-        // Navigator.pushNamed(context, '/');  // TODO handle lobby deletion
+        // Navigator.pushNamed(context, '/');  // TODO handle lobby deletion if possible
       }
 
       var lobby = LobbyInfo.fromJson(event.snapshot.value as Map<String, dynamic>, user);
@@ -138,6 +133,7 @@ class LobbyBloc {
       var lobby = Game.fromJson(event.snapshot.value as Map<String, dynamic>);
       state.add(lobby.state);
       clue.add(lobby.clue);
+      dictionary.add(lobby.dictionary);
     });
 
     _wordsSubscription = _wordsRef.onValue.listen((event) {
@@ -167,22 +163,24 @@ class LobbyBloc {
     });
   }
 
-  resetGame() async {
+  tryStartGame(String dictionaryLink) async {
+    GameState? newState;
+    if (dictionaryLink.isNotEmpty) {
+      newState = await tryPushNewWords(dictionaryLink);
+    }
+
+    if (newState == null) return;
     await _logRef.set({});
-    await _gameRef.update(Game(clue: null, state: await pushNewWords()).toJson());
+    await _gameRef.update(Game(clue: null, state: newState, dictionary: dictionaryLink).toJson());
   }
 
-  Future<GameState> pushNewWords() async {
-    // if (_stringWords == null) {
-    //   // TODO Load words from web
-    //   var wordsFile = await rootBundle.loadString('assets/words.txt');
-    //   _stringWords = wordsFile.split(';');
-    // }
+  Future<GameState> tryPushNewWords(String dictionaryLink) async {
+    final stringWords = await tryLoadWords(dictionaryLink);
 
     List<int> wordTextIndexes = [];
     Random random = Random();
     while (wordTextIndexes.length < 25) {
-      int number = random.nextInt(_stringWords.length);
+      int number = random.nextInt(stringWords.length);
       if (!wordTextIndexes.contains(number)) {
         wordTextIndexes.add(number);
       }
@@ -203,21 +201,41 @@ class LobbyBloc {
 
     var wordColors = List.generate(
         25,
-        (i) => i < 9
+            (i) => i < 9
             ? color1
             : (i < 17
-                ? color2
+            ? color2
                 : i < 18
                     ? WordColor.black
                     : WordColor.grey));
     wordColors.shuffle();
 
     var words = List<dynamic>.generate(25, (i) {
-      return Word(id: i.toString(), text: _stringWords[wordTextIndexes[i]], color: wordColors[i]).toJson();
+      return Word(id: i.toString(), text: stringWords[wordTextIndexes[i]], color: wordColors[i]).toJson();
     });
 
     await _wordsRef.set(words);
+
+    await _gameRef.update({Game.dictionaryKey: dictionaryLink});
     return state;
+  }
+
+  Future<List<String>> tryLoadWords(String dictionaryLink) async {
+    final uri = Uri.parse(dictionaryLink);
+
+    // Await the http get response, then decode the json-formatted response.
+    var response = await http.get(uri);
+    if (response.statusCode == 200) {
+      var body = response.body;
+      if (body.isNotEmpty) {
+        var stringWords = body.split(';');
+        if (stringWords.length < 25) {
+          throw ArgumentError('Dictionary size is lower than 25 words');
+        }
+        return stringWords;
+      }
+    }
+    throw ArgumentError('Dictionary data is unavailable');
   }
 
   unlockTeams() async {
@@ -277,11 +295,11 @@ class LobbyBloc {
     var color = isBlue
         ? WordColor.blue
         : isRed
-            ? WordColor.red
-            : WordColor.grey;
+        ? WordColor.red
+        : WordColor.grey;
 
     await _logRef.push().set(LogEntry(
-            who: user.name, text: 'gives clue', word: Word(id: '', text: "${clue.text} ${clue.count}", color: color))
+        who: user.name, text: 'gives clue', word: Word(id: '', text: "${clue.text} ${clue.count}", color: color))
         .toJson());
   }
 

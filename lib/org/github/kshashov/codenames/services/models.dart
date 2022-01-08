@@ -132,15 +132,18 @@ class Clue {
 
 class Game {
   static const stateKey = 'state';
+  static const dictionaryKey = 'dictionary';
   static const clueKey = 'clue';
 
   late final GameState state;
+  late final String dictionary;
   late final Clue? clue;
 
-  Game({required this.state, required this.clue});
+  Game({required this.state, required this.clue, required this.dictionary});
 
   Game.fromJson(Map<String, dynamic> lobbyMap) {
     state = GameStateExtensions.of(lobbyMap[stateKey]);
+    dictionary = lobbyMap[dictionaryKey];
     if (lobbyMap[clueKey] != null) {
       clue = Clue.fromJson(lobbyMap[clueKey]);
     } else {
@@ -149,7 +152,7 @@ class Game {
   }
 
   Map<String, dynamic> toJson() {
-    return {stateKey: state.toString(), clueKey: clue?.toJson()};
+    return {stateKey: state.toString(), clueKey: clue?.toJson(), dictionaryKey: dictionary};
   }
 }
 
