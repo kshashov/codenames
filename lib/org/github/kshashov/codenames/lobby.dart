@@ -3,12 +3,14 @@ import 'dart:ui';
 import 'package:codenames/org/github/kshashov/codenames/game.dart';
 import 'package:codenames/org/github/kshashov/codenames/log.dart';
 import 'package:codenames/org/github/kshashov/codenames/player.dart';
+import 'package:codenames/org/github/kshashov/codenames/responsive.dart';
 import 'package:codenames/org/github/kshashov/codenames/services/lobby.dart';
 import 'package:codenames/org/github/kshashov/codenames/services/models.dart';
 import 'package:codenames/org/github/kshashov/codenames/services/user.dart';
 import 'package:codenames/org/github/kshashov/codenames/services/utils.dart';
 import 'package:codenames/org/github/kshashov/codenames/summary_dialog.dart';
 import 'package:codenames/org/github/kshashov/codenames/utils.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/src/provider.dart';
 
@@ -39,56 +41,124 @@ class _LobbyPageState extends State<LobbyPage> {
 
     return Center(
         child: Container(
-      constraints: const BoxConstraints(minWidth: 500, maxWidth: 1500),
+      constraints: const BoxConstraints(minWidth: ResponsiveUtils.xlWidth, maxWidth: ResponsiveUtils.xlWidth),
       child: Column(
-        children: [
-          LobbyHeader(),
-          Expanded(
-              child: Row(
-            children: [
-              Column(children: [
-                Container(
-                    margin: const EdgeInsets.all(10),
-                    padding: const EdgeInsets.all(10),
-                    width: 250,
-                    child: SeededStreamBuilder<PlayerRole>(
-                      stream: _bloc.userRole,
-                      builder: (context, snapshot) => TeamWidget(
-                          title: 'RED TEAM',
-                          color: Colors.redAccent,
-                          onBecomeMaster: () => _bloc.becomeRedMaster(),
-                          onBecomePlayer: () => _bloc.becomeRedPlayer(),
-                          score: _bloc.redScore,
-                          masters: _bloc.redMasters,
-                          players: _bloc.redPlayers,
-                          currentTeam: snapshot.requireData.isRed),
-                    ))
-              ]),
-              Expanded(child: GameWidget()),
-              Container(
-                  margin: const EdgeInsets.all(10),
-                  padding: const EdgeInsets.all(10),
-                  width: 250,
-                  child: Column(children: [
-                    SeededStreamBuilder<PlayerRole>(
-                      stream: _bloc.userRole,
-                      builder: (context, snapshot) => TeamWidget(
-                          title: 'BLUE TEAM',
-                          color: Colors.blueAccent,
-                          onBecomeMaster: () => _bloc.becomeBlueMaster(),
-                          onBecomePlayer: () => _bloc.becomeBluePlayer(),
-                          score: _bloc.blueScore,
-                          masters: _bloc.blueMasters,
-                          players: _bloc.bluePlayers,
-                          currentTeam: snapshot.requireData.isBlue),
-                    ),
-                    const LogWidget()
-                  ]))
-            ],
-          ))
-        ],
+        children: [LobbyHeader(), Expanded(child: content(context))],
       ),
     ));
+  }
+
+  Widget content(BuildContext context) {
+    var redTeam = SeededStreamBuilder<PlayerRole>(
+      stream: _bloc.userRole,
+      builder: (context, snapshot) => TeamWidget(
+          title: 'RED TEAM',
+          color: Colors.redAccent,
+          onBecomeMaster: () => _bloc.becomeRedMaster(),
+          onBecomePlayer: () => _bloc.becomeRedPlayer(),
+          score: _bloc.redScore,
+          masters: _bloc.redMasters,
+          players: _bloc.redPlayers,
+          currentTeam: snapshot.requireData.isRed),
+    );
+    var blueTeam = SeededStreamBuilder<PlayerRole>(
+      stream: _bloc.userRole,
+      builder: (context, snapshot) => TeamWidget(
+          title: 'BLUE TEAM',
+          color: Colors.blueAccent,
+          onBecomeMaster: () => _bloc.becomeBlueMaster(),
+          onBecomePlayer: () => _bloc.becomeBluePlayer(),
+          score: _bloc.blueScore,
+          masters: _bloc.blueMasters,
+          players: _bloc.bluePlayers,
+          currentTeam: snapshot.requireData.isBlue),
+    );
+    var size = MediaQuery.of(context).size;
+
+    return (context.ui.size == ResponsiveSize.xl || (size.width > size.height))
+        ? horizontal(size, context, redTeam, blueTeam)
+        : vertical(size, context, redTeam, blueTeam);
+  }
+
+  Widget horizontal(
+    Size size,
+    BuildContext context,
+    SeededStreamBuilder<PlayerRole> redTeam,
+    SeededStreamBuilder<PlayerRole> blueTeam,
+  ) {
+    return Row(
+      children: [
+        Flexible(
+            fit: FlexFit.tight,
+            flex: 2,
+            child: Column(children: [
+              Container(
+                  margin: EdgeInsets.all(context.ui.padding),
+                  padding: EdgeInsets.all(context.ui.padding),
+                  child: redTeam)
+            ])),
+        Flexible(flex: 6, child: GameWidget()),
+        Flexible(
+            flex: 2,
+            child: Container(
+                margin: EdgeInsets.all(context.ui.padding),
+                padding: EdgeInsets.all(context.ui.padding),
+                child: Column(children: [
+                  blueTeam,
+                  Flexible(
+                      child: SingleChildScrollView(
+                          controller: ScrollController(),
+                          scrollDirection: Axis.vertical,
+                          child: const LogWidget(
+                            alignment: CrossAxisAlignment.start,
+                          )))
+                ])))
+      ],
+    );
+  }
+
+  Widget vertical(
+    Size size,
+    BuildContext context,
+    SeededStreamBuilder<PlayerRole> redTeam,
+    SeededStreamBuilder<PlayerRole> blueTeam,
+  ) {
+    return Column(
+      children: [
+        GameWidget(),
+        Flexible(
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Flexible(
+              flex: 2,
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Container(
+                  margin: EdgeInsets.all(context.ui.padding),
+                  padding: EdgeInsets.all(context.ui.padding),
+                  child: redTeam,
+                )
+              ])),
+          Flexible(
+              flex: 3,
+              fit: FlexFit.tight,
+              child: SingleChildScrollView(
+                  controller: ScrollController(),
+                  scrollDirection: Axis.vertical,
+                  child: LogWidget(
+                    alignment:
+                        context.ui.size == ResponsiveSize.xs ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+                  ))),
+          Flexible(
+              flex: 2,
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Container(
+                  margin: EdgeInsets.all(context.ui.padding),
+                  padding: EdgeInsets.all(context.ui.padding),
+                  child: blueTeam,
+                )
+              ]))
+        ])),
+      ],
+    );
   }
 }
 
@@ -100,8 +170,9 @@ class LobbyHeader extends StatelessWidget {
     final savedContext = context;
 
     return Padding(
-        padding: const EdgeInsets.all(10),
-        child: Row(
+        padding: EdgeInsets.all(context.ui.padding),
+        child: Flex(
+          direction: Axis.horizontal,
           children: [
             IconButton(
                 tooltip: 'Home',
@@ -109,52 +180,54 @@ class LobbyHeader extends StatelessWidget {
                   Navigator.pushNamed(context, "/");
                 },
                 icon: const Icon(Icons.home_filled)),
-            const SizedBox(width: 20),
+            SizedBox(width: context.ui.paddingBig),
             Expanded(
                 child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SeededStreamBuilder<User>(
                   stream: userBloc.user,
                   builder: (context, snapshot) => Text("Hello ${snapshot.requireData.name}"),
                 ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    const Text(
-                      'Flutter Codenames Lobby',
-                      style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(width: 10),
-                    SeededStreamBuilder<Player>(
-                      stream: bloc.host,
-                      builder: (context, snapshot) => Flex(
-                        direction: Axis.horizontal,
-                        children: [
-                          const Text('by'),
-                          const SizedBox(
-                            width: 5,
+                FittedBox(
+                    fit: BoxFit.fitWidth,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          ((context.ui.size != ResponsiveSize.xs)) ? 'Flutter Codenames Lobby' : 'Codenames Lobby',
+                          style: TextStyle(fontSize: context.ui.fontSizeBig, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(width: context.ui.padding),
+                        SeededStreamBuilder<Player>(
+                          stream: bloc.host,
+                          builder: (context, snapshot) => Flex(
+                            direction: Axis.horizontal,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              const Text('by'),
+                              SizedBox(width: context.ui.padding * 0.5),
+                              PlayerChip(
+                                player: snapshot.requireData,
+                                context: context,
+                              )
+                            ],
                           ),
-                          PlayerChip(
-                            player: snapshot.requireData,
-                            context: context,
-                          )
-                        ],
-                      ),
-                    )
-                  ],
-                )
+                        )
+                      ],
+                    ))
               ],
             )),
             Padding(
-              padding: const EdgeInsets.all(10),
+              padding: EdgeInsets.all(context.ui.padding),
               child: SeededStreamBuilder(
                 stream: bloc.online,
                 builder: (context, snapshot) => OutlinedButton.icon(
                     style: ButtonStyle(
                         shape: MaterialStateProperty.all(
-                            RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0))),
-                        padding: MaterialStateProperty.all(const EdgeInsets.all(20))),
+                            RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.ui.radiusBig))),
+                        padding: MaterialStateProperty.all(EdgeInsets.all(context.ui.paddingBig))),
                     icon: Text(
                       "Online: ${snapshot.data}",
                       style: const TextStyle(fontWeight: FontWeight.bold),
@@ -209,44 +282,40 @@ class TeamWidget extends StatelessWidget {
                     style: TextStyle(
                       color: color.shade700,
                       fontWeight: FontWeight.w900,
-                      fontSize: 20,
+                      fontSize: context.ui.fontSizeBig,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Divider(
-                    height: 15,
-                    color: color.shade100,
-                  ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: context.ui.paddingBig),
                   StreamBuilder<int>(
                     stream: score,
                     initialData: 0,
                     builder: (context, snapshot) => Text(
                       "${snapshot.requireData} words left",
-                      style: const TextStyle(fontSize: 20),
+                      style: TextStyle(fontSize: context.ui.fontSize),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  // Divider(
-                  //   height: 15,
-                  //   color: color.shade100,
-                  // ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: context.ui.paddingSmall),
+                  Divider(
+                    height: context.ui.padding,
+                    color: color.shade100,
+                  ),
+                  SizedBox(height: context.ui.paddingSmall),
                   Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      padding: EdgeInsets.symmetric(horizontal: context.ui.padding),
                       child: PlayersWrap(title: 'Operatives:', players: players, context: context)),
                   SeededStreamBuilder<PlayerRole>(
                       stream: _bloc.userRole,
                       builder: (context, snapshot) =>
                           (!locked.requireData && (!currentTeam || !snapshot.requireData.isPlayer))
                               ? OutlinedButton(
-                                  child: const Text('Become Operative'), onPressed: () => onBecomePlayer.call())
+                                  child: Text('Join', style: TextStyle(fontSize: context.ui.fontSize)),
+                                  onPressed: () => onBecomePlayer.call())
                               : const SizedBox.shrink())
                 ]),
-                const SizedBox(height: 10),
+                SizedBox(height: context.ui.padding),
                 Column(children: [
                   Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      padding: EdgeInsets.symmetric(horizontal: context.ui.padding),
                       child: PlayersWrap(
                         title: 'Masters:',
                         players: masters,
@@ -254,25 +323,27 @@ class TeamWidget extends StatelessWidget {
                       )),
                   SeededStreamBuilder<PlayerRole>(
                       stream: _bloc.userRole,
-                      builder: (context, snapshot) => (!locked.requireData &&
-                              (!currentTeam || !snapshot.requireData.isMaster))
-                          ? OutlinedButton(child: const Text('Become Master'), onPressed: () => onBecomeMaster.call())
-                          : const SizedBox.shrink())
+                      builder: (context, snapshot) =>
+                          (!locked.requireData && (!currentTeam || !snapshot.requireData.isMaster))
+                              ? OutlinedButton(
+                                  child: Text('Join', style: TextStyle(fontSize: context.ui.fontSize)),
+                                  onPressed: () => onBecomeMaster.call())
+                              : const SizedBox.shrink())
                 ]),
               ],
             ));
 
     return Container(
-      padding: EdgeInsets.all(15),
+      padding: EdgeInsets.all(context.ui.padding),
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(context.ui.radiusBig),
           color: Theme.of(context).cardColor,
           boxShadow: [
             BoxShadow(
                 offset: Offset.fromDirection(1, 10),
                 color: Theme.of(context).shadowColor,
-                blurRadius: 20,
-                spreadRadius: 5)
+                blurRadius: context.ui.paddingBig,
+                spreadRadius: context.ui.paddingBig / 3)
           ]),
       child: content,
     );

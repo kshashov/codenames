@@ -1,3 +1,4 @@
+import 'package:codenames/org/github/kshashov/codenames/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -12,9 +13,10 @@ class CodeNamesPage extends StatelessWidget {
       body: Column(children: [
         Expanded(child: child),
         Padding(
-            padding: const EdgeInsets.all(5),
+            padding: EdgeInsets.all(context.ui.paddingSmall),
             child: InkWell(
-                child: Text('github/kshashov/codenames'), onTap: () => launch('https://github.com/kshashov/codenames')))
+                child: const Text('github/kshashov/flutter-codenames'),
+                onTap: () => launch('https://github.com/kshashov/flutter-codenames')))
       ]),
     );
   }
@@ -29,10 +31,10 @@ class TextPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return CodeNamesPage(
         child: Center(
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+          child: Text(
+            text,
+        style: TextStyle(fontSize: context.ui.fontSizeBig, fontWeight: FontWeight.bold),
       ),
-    ));
+        ));
   }
 }

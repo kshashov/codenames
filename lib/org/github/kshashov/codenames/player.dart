@@ -12,12 +12,13 @@ class PlayersWrap extends StatelessWidget {
   final bool showIfNone;
   final BuildContext context;
 
-  PlayersWrap({Key? key,
-    required this.players,
-    this.title,
-    this.direction = Axis.vertical,
-    this.showIfNone = true,
-    required this.context})
+  PlayersWrap(
+      {Key? key,
+      required this.players,
+      this.title,
+      this.direction = Axis.vertical,
+      this.showIfNone = true,
+      required this.context})
       : super(key: key);
 
   @override
@@ -27,31 +28,31 @@ class PlayersWrap extends StatelessWidget {
         initialData: const [],
         builder: (context, snapshot) => (snapshot.requireData.isNotEmpty || showIfNone)
             ? Flex(
-          direction: direction,
-          children: [
-            if (title != null)
-              Text(
-                title!,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            // const SizedBox(height: 10),
-            Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                child: Wrap(
-                  spacing: 3,
-                  children: [
-                    for (var player in snapshot.requireData)
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 2),
-                        child: PlayerChip(
-                          player: player,
-                          context: this.context,
-                        ),
-                      )
-                  ],
-                ))
-          ],
-        )
+                direction: direction,
+                children: [
+                  if (title != null)
+                    Text(
+                      title!,
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: context.ui.fontSize),
+                    ),
+                  // const SizedBox(height: 10),
+                  Padding(
+                      padding: EdgeInsets.symmetric(vertical: context.ui.padding * 0.5),
+                      child: Wrap(
+                        spacing: context.ui.padding * 0.3,
+                        children: [
+                          for (var player in snapshot.requireData)
+                            Padding(
+                              padding: EdgeInsets.symmetric(vertical: context.ui.padding * 0.25),
+                              child: PlayerChip(
+                                player: player,
+                                context: this.context,
+                              ),
+                            )
+                        ],
+                      ))
+                ],
+              )
             : const SizedBox.shrink());
   }
 }
@@ -67,9 +68,14 @@ class PlayerChip extends StatelessWidget {
     final userBloc = this.context.watch<UserBloc>();
     final bloc = this.context.watch<LobbyBloc>();
 
-    Widget chip = Chip(label: Text(player.fullName), backgroundColor: Theme.of(context).chipTheme.backgroundColor);
+    Widget chip = Chip(
+        label: Text(
+          player.fullName,
+          style: TextStyle(fontSize: this.context.ui.fontSize),
+        ),
+        backgroundColor: Theme.of(context).chipTheme.backgroundColor);
     if (player.online) {
-      chip = Badge(child: chip, top: 6, right: 6, minSize: 6);
+      chip = Badge(child: chip, top: 6, right: 6, minSize: 6); // TODO size: mb leave size fixed?
     }
 
     return SeededStreamBuilder<Player>(

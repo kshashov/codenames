@@ -1,5 +1,6 @@
 import 'package:codenames/org/github/kshashov/codenames/services/coordinator.dart';
 import 'package:codenames/org/github/kshashov/codenames/services/models.dart';
+import 'package:codenames/org/github/kshashov/codenames/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/src/provider.dart';
 
@@ -36,9 +37,9 @@ class _HomePageState extends State<HomePage> {
                         .registerLobby(widget.user)
                         .then((value) => Navigator.pushNamed(context, '/lobby/' + value));
                   },
-            child: const Padding(
-              padding: EdgeInsets.all(10),
-              child: Text('Create Lobby', style: TextStyle(fontSize: 30)),
+            child: Padding(
+              padding: EdgeInsets.all(context.ui.padding),
+              child: Text('Create Lobby', style: TextStyle(fontSize: context.ui.fontSizeBig)),
             ),
           ),
         ],

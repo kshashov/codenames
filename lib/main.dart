@@ -24,15 +24,15 @@ void main() async {
           appId: '1:51985242347:web:ceca73924f6101fd4486ae',
           measurementId: 'G-SDX834227N'));
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => UserBloc()),
-        ChangeNotifierProvider(create: (_) => LobbyCoordinator())
-      ],
-      child: const CodeNamesApp(),
-    ),
-  );
+  WidgetsFlutterBinding.ensureInitialized();
+
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (_) => UserBloc()),
+      ChangeNotifierProvider(create: (_) => LobbyCoordinator())
+    ],
+    child: const CodeNamesApp(),
+  ));
 }
 
 class CodeNamesApp extends StatelessWidget {
@@ -80,7 +80,7 @@ class CodeNamesApp extends StatelessWidget {
                                     create: (context) => LobbyBloc(id: id, user: userSnapshot.requireData),
                                     dispose: (context, value) => value.dispose(),
                                     builder: (context, child) => StreamBuilder<bool>(
-                                      stream: context.watch<LobbyBloc>().loading,
+                                          stream: context.watch<LobbyBloc>().loading,
                                           builder: (context, loadingSnapshot) =>
                                               loadingSnapshot.hasData && !loadingSnapshot.requireData
                                                   ? CodeNamesPage(

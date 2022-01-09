@@ -24,13 +24,13 @@ class LobbySummaryDialog extends StatelessWidget {
     _name = _userBloc.user.valueOrNull!.name;
 
     var content = Flex(direction: Axis.vertical, mainAxisSize: MainAxisSize.min, children: [
-      const Padding(
-        padding: EdgeInsets.all(10),
-        child: Text('Options', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
-      ),
-      const SizedBox(height: 10),
       Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: EdgeInsets.all(context.ui.padding),
+        child: Text('Options', style: TextStyle(fontWeight: FontWeight.w600, fontSize: context.ui.fontSize)),
+      ),
+      SizedBox(height: context.ui.padding),
+      Padding(
+          padding: EdgeInsets.symmetric(horizontal: context.ui.padding),
           child: TextFormField(
             decoration: InputDecoration(
                 border: const OutlineInputBorder(),
@@ -45,9 +45,9 @@ class LobbySummaryDialog extends StatelessWidget {
             initialValue: _name,
             onChanged: (value) => _name = value,
           )),
-      const SizedBox(height: 10),
+      SizedBox(height: context.ui.padding),
       Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: EdgeInsets.symmetric(horizontal: context.ui.padding),
           child: PlayersWrap(
             players: _lobbyBloc.spectators,
             title: 'Spectators: ',
@@ -55,12 +55,12 @@ class LobbySummaryDialog extends StatelessWidget {
             showIfNone: false,
             context: this.context,
           )),
-      const SizedBox(height: 10),
+      SizedBox(height: context.ui.padding),
       SeededStreamBuilder<PlayerRole>(
         stream: _lobbyBloc.userRole,
         builder: (context, snapshot) => commonButtons(snapshot.requireData.isSpectator),
       ),
-      const SizedBox(height: 10),
+      SizedBox(height: context.ui.padding),
       Row(
         children: [
           Expanded(
@@ -81,13 +81,13 @@ class LobbySummaryDialog extends StatelessWidget {
 
     return Dialog(
       elevation: 0,
-      child: SizedBox(width: 400, child: content),
+      child: SizedBox(width: 400, child: content), // TODO size
     );
   }
 
   Widget commonButtons(bool isSpectator) {
     return Wrap(
-      spacing: 5,
+      spacing: context.ui.padding * 0.5,
       direction: Axis.horizontal,
       children: [
         if (!isSpectator)
@@ -103,12 +103,12 @@ class LobbySummaryDialog extends StatelessWidget {
     if (!isHost) return const SizedBox.shrink();
 
     return Padding(
-        padding: const EdgeInsets.all(10),
+        padding: EdgeInsets.all(context.ui.padding),
         child: Flex(
           direction: Axis.vertical,
           children: [
             _DictionaryField(_lobbyBloc),
-            const SizedBox(height: 10),
+            SizedBox(height: context.ui.padding),
             SeededStreamBuilder<bool>(
               stream: _lobbyBloc.locked,
               builder: (context, snapshot) => lockButton(snapshot),
@@ -178,7 +178,7 @@ class _DictionaryFieldState extends State<_DictionaryField> {
                 ])),
             controller: _controller,
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: context.ui.padding),
           ElevatedButton(
             onPressed: () async {
               try {

@@ -1,3 +1,4 @@
+import 'package:codenames/org/github/kshashov/codenames/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -43,9 +44,9 @@ class Badge extends StatelessWidget {
           right: right,
           top: top,
           child: Container(
-            padding: const EdgeInsets.all(2.0),
+            padding: EdgeInsets.all(context.ui.padding * 0.2),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10.0),
+              borderRadius: BorderRadius.circular(context.ui.padding),
               color: color ?? Colors.green,
             ),
             constraints: BoxConstraints(
@@ -56,8 +57,8 @@ class Badge extends StatelessWidget {
                 ? Text(
                     value!,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 10,
+                    style: TextStyle(
+                      fontSize: context.ui.fontSize,
                     ),
                   )
                 : const SizedBox.shrink(),
@@ -66,4 +67,8 @@ class Badge extends StatelessWidget {
       ],
     );
   }
+}
+
+extension BuildContextExtensions on BuildContext {
+  ResponsiveUI get ui => ResponsiveUtils.ui(this);
 }

@@ -16,16 +16,18 @@ class GameWidget extends StatelessWidget {
         stream: bloc.state,
         builder: (context, snapshot) {
           return Column(children: [
-            const SizedBox(height: 20),
+            SizedBox(height: context.ui.padding),
             GameHint(snapshot.requireData),
+            SizedBox(height: context.ui.padding),
             WordsWidget(snapshot.requireData),
             !snapshot.requireData.isRed && !snapshot.requireData.isBlue
                 ? const SizedBox.shrink()
                 : Column(children: [
-              ClueWidget(snapshot.requireData),
-              const SizedBox(height: 10),
-              GameActions(snapshot.requireData)
-            ])
+                    ClueWidget(snapshot.requireData),
+                    SizedBox(height: context.ui.padding),
+                    GameActions(snapshot.requireData),
+                    SizedBox(height: context.ui.paddingBig),
+                  ])
           ]);
         });
   }
@@ -46,13 +48,13 @@ class WordsWidget extends StatelessWidget {
             stream: bloc.words,
             builder: (context, wordsSnapshot) {
               return GridView.count(
-                padding: const EdgeInsets.all(15),
+                padding: EdgeInsets.all(context.ui.paddingBig),
                 scrollDirection: Axis.vertical,
                 shrinkWrap: true,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
+                mainAxisSpacing: context.ui.padding,
+                crossAxisSpacing: context.ui.padding,
                 crossAxisCount: 5,
-                childAspectRatio: 2.5,
+                childAspectRatio: 2.8,
                 children: wordsSnapshot.requireData
                     .map((e) => wordWidget(context, roleSnapshot.requireData, e, bloc))
                     .toList(growable: false),
@@ -76,13 +78,15 @@ class WordsWidget extends StatelessWidget {
 
     final card = Container(
       key: Key(word.id),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: color, boxShadow: [
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(context.ui.radiusBig), color: color, boxShadow: [
         BoxShadow(
-            offset: Offset.fromDirection(1, 10), color: Theme.of(context).shadowColor, blurRadius: 8, spreadRadius: 3)
+            offset: Offset.fromDirection(1, 10),
+            color: Theme.of(context).shadowColor,
+            blurRadius: context.ui.paddingBig * 0.7,
+            spreadRadius: context.ui.paddingBig * 0.1)
       ]),
       alignment: Alignment.center,
-      height: 100,
-      child: Text(word.text, style: TextStyle(color: textColor, fontSize: 15)),
+      child: Text(word.text, style: TextStyle(color: textColor, fontSize: context.ui.fontSize)),
     );
 
     if (((_gameState == GameState.bluePlayersTurn) && (role == PlayerRole.bluePlayer)) ||
@@ -154,18 +158,21 @@ class GameHint extends StatelessWidget {
     return const SizedBox.shrink();
   }
 
-  Widget neutral(context, String text) {
-    return Chip(
-      label: Text(text, style: const TextStyle(fontSize: 20)),
-      padding: const EdgeInsets.all(10),
+  Widget neutral(BuildContext context, String text) {
+    return FittedBox(
+      fit: BoxFit.fitWidth,
+      child: Chip(
+        label: Text(text, style: TextStyle(fontSize: context.ui.fontSizeBig)),
+        padding: EdgeInsets.all(context.ui.padding),
+      ),
     );
   }
 }
 
 class ClueWidget extends StatelessWidget {
-  GameState _gameState;
+  final GameState _gameState;
 
-  ClueWidget(this._gameState, {Key? key}) : super(key: key);
+  const ClueWidget(this._gameState, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -178,25 +185,23 @@ class ClueWidget extends StatelessWidget {
             return const SizedBox.shrink();
           }
 
-          const textStyle = TextStyle(fontSize: 20, color: Colors.white);
+          final textStyle = TextStyle(fontSize: context.ui.fontSize, color: Colors.white);
           final color = _gameState.isRed ? Colors.redAccent : Colors.blueAccent;
 
           return Padding(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all(context.ui.padding),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               Chip(
-                padding: const EdgeInsets.all(15),
+                padding: EdgeInsets.all(context.ui.padding),
                 label: Text(snapshot.requireData!.text),
                 labelStyle: textStyle,
                 backgroundColor: color,
                 shadowColor: Theme.of(context).shadowColor,
                 elevation: 10,
               ),
-              const SizedBox(
-                width: 10,
-              ),
+              SizedBox(width: context.ui.padding),
               Chip(
-                padding: const EdgeInsets.all(15),
+                padding: EdgeInsets.all(context.ui.padding),
                 label: Text(snapshot.requireData!.count.toString()),
                 labelStyle: textStyle,
                 backgroundColor: color,
@@ -245,28 +250,36 @@ class _GameActionState extends State<GameActions> {
       resetClue();
       return ElevatedButton(
         onPressed: () => bloc.endPlayerTurn(),
-        style: ButtonStyle(padding: MaterialStateProperty.all(EdgeInsets.all(15))),
-        child: const Text('End Turn', style: TextStyle(fontSize: 20)),
+        style: ButtonStyle(
+            shape: MaterialStateProperty.all(
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.ui.radiusBig))),
+            padding: MaterialStateProperty.all(EdgeInsets.all(context.ui.paddingBig))),
+        child: Text('End Turn', style: TextStyle(fontSize: context.ui.fontSizeBig)),
       );
     } else if (gameState.isMaster && playerRole.isMaster) {
       // master
-      return Column(children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+      return FittedBox(
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
             SizedBox(
                 width: 200,
-                child: TextField(
+                height: context.ui.fontSizeBig + 3 * context.ui.padding,
+                child: TextFormField(
+                  style: TextStyle(fontSize: context.ui.fontSizeBig),
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Clue',
                   ),
                   onChanged: (value) => _clueText = value,
                 )),
-            const SizedBox(width: 10),
+            SizedBox(width: context.ui.padding),
             SizedBox(
-                width: 100,
+                width: 100, // TODO size
+                height: context.ui.fontSizeBig + 3 * context.ui.padding,
                 child: TextField(
+                  style: TextStyle(fontSize: context.ui.fontSizeBig),
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Count',
@@ -274,20 +287,19 @@ class _GameActionState extends State<GameActions> {
                   keyboardType: TextInputType.number,
                   inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                   onChanged: (value) => _clueCount = int.parse(value),
-                ))
-          ],
-        ),
-        const SizedBox(
-          height: 10,
-        ),
-        ElevatedButton(
-            onPressed: () {
-              if (_clueText.isNotEmpty) bloc.sendClue(Clue(text: _clueText, count: _clueCount, openedCount: 0));
-              resetClue();
-            },
-            style: ButtonStyle(padding: MaterialStateProperty.all(EdgeInsets.all(15))),
-            child: const Text('Give Clue', style: TextStyle(fontSize: 20)))
-      ]);
+                )),
+            SizedBox(width: context.ui.padding),
+            ElevatedButton(
+                onPressed: () {
+                  if (_clueText.isNotEmpty) bloc.sendClue(Clue(text: _clueText, count: _clueCount, openedCount: 0));
+                  resetClue();
+                },
+                style: ButtonStyle(
+                    shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.ui.radiusBig))),
+                    padding: MaterialStateProperty.all(EdgeInsets.all(context.ui.paddingBig))),
+                child: Text('Give Clue', style: TextStyle(fontSize: context.ui.fontSizeBig)))
+          ]));
     }
 
     resetClue();
