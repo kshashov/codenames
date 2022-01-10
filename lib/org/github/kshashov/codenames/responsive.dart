@@ -19,36 +19,36 @@ class ResponsiveUtils {
   static final ResponsiveUI mdUI = ResponsiveUI(
       size: ResponsiveSize.md,
       paddingBig: 14,
-      padding: 10,
+      padding: 12,
       paddingSmall: 7,
       radiusBig: 14,
       radius: 10,
       radiusSmall: 7,
       fontSizeBig: 20,
-      fontSize: 13,
+      fontSize: 14,
       fontSizeSmall: 9);
   static final ResponsiveUI smUI = ResponsiveUI(
       size: ResponsiveSize.sm,
-      paddingBig: 7,
-      padding: 5,
-      paddingSmall: 3,
+      paddingBig: 11,
+      padding: 9,
+      paddingSmall: 5,
       radiusBig: 11,
       radius: 8,
       radiusSmall: 5,
       fontSizeBig: 17,
-      fontSize: 12,
-      fontSizeSmall: 8);
+      fontSize: 14,
+      fontSizeSmall: 9);
   static final ResponsiveUI xsUI = ResponsiveUI(
       size: ResponsiveSize.xs,
-      paddingBig: 4,
-      padding: 3,
-      paddingSmall: 2,
+      paddingBig: 10,
+      padding: 5,
+      paddingSmall: 4,
       radiusBig: 8,
       radius: 6,
       radiusSmall: 3,
-      fontSizeBig: 15,
-      fontSize: 12,
-      fontSizeSmall: 8);
+      fontSizeBig: 16,
+      fontSize: 14,
+      fontSizeSmall: 9);
 
   // static bool isXl(BuildContext context) {
   //   return MediaQuery.of(context).size.width >= xlWidth;

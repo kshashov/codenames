@@ -3,16 +3,18 @@ import 'package:codenames/org/github/kshashov/codenames/services/models.dart';
 import 'package:codenames/org/github/kshashov/codenames/services/utils.dart';
 import 'package:codenames/org/github/kshashov/codenames/utils.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/src/provider.dart';
 
 class LogWidget extends StatelessWidget {
   final CrossAxisAlignment alignment;
+  final BuildContext context;
 
-  const LogWidget({Key? key, required this.alignment}) : super(key: key);
+  const LogWidget({Key? key, required this.alignment, required this.context}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final bloc = context.watch<LobbyBloc>();
+    final bloc = this.context.watch<LobbyBloc>();
 
     return SeededStreamBuilder<List<LogEntry>>(
       stream: bloc.logs,
@@ -39,5 +41,18 @@ class LogWidget extends StatelessWidget {
           style: TextStyle(color: entry.word!.color.flutterColor),
         )
     ]);
+  }
+
+  static Widget dialog(BuildContext context, CrossAxisAlignment alignment) {
+    return Dialog(
+      elevation: 0,
+      child: SingleChildScrollView(
+          child: SizedBox(
+              width: 400,
+              child: LogWidget(
+                context: context,
+                alignment: alignment,
+              ))), // TODO size
+    );
   }
 }

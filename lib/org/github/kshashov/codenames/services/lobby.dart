@@ -93,7 +93,7 @@ class LobbyBloc {
         // Navigator.pushNamed(context, '/');  // TODO handle lobby deletion if possible
       }
 
-      var lobby = LobbyInfo.fromJson(event.snapshot.value as Map<String, dynamic>, user);
+      var lobby = LobbyInfo.fromJson(Map<String, dynamic>.from(event.snapshot.value as Map), user);
       locked.add(lobby.locked);
     });
 
@@ -102,7 +102,8 @@ class LobbyBloc {
         return;
       }
 
-      var players = event.snapshot.children.map((e) => Player.fromJson(e.value as dynamic, user)).toList();
+      var players =
+          event.snapshot.children.map((e) => Player.fromJson(Map<String, dynamic>.from(e.value as Map), user)).toList();
 
       var currentPlayer = players.firstWhereOrNull((element) => element.id == user.id);
       if (currentPlayer != null) {
@@ -130,7 +131,7 @@ class LobbyBloc {
         return;
       }
 
-      var lobby = Game.fromJson(event.snapshot.value as Map<String, dynamic>);
+      var lobby = Game.fromJson(Map<String, dynamic>.from(event.snapshot.value as Map));
       state.add(lobby.state);
       clue.add(lobby.clue);
       dictionary.add(lobby.dictionary);
@@ -141,7 +142,8 @@ class LobbyBloc {
         return;
       }
 
-      var words = event.snapshot.children.map((e) => Word.fromJson(e.value as dynamic, e.key!)).toList();
+      var words =
+          event.snapshot.children.map((e) => Word.fromJson(Map<String, dynamic>.from(e.value as Map), e.key!)).toList();
       this.words.add(words);
 
       var redAll = words.where((element) => element.color == WordColor.red).length;
@@ -158,7 +160,8 @@ class LobbyBloc {
         this.logs.add([]);
       }
 
-      var logs = event.snapshot.children.map((e) => LogEntry.fromJson(e.value as dynamic)).toList();
+      var logs =
+          event.snapshot.children.map((e) => LogEntry.fromJson(Map<String, dynamic>.from(e.value as Map))).toList();
       this.logs.add(logs);
     });
   }

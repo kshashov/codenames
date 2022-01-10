@@ -145,7 +145,7 @@ class Game {
     state = GameStateExtensions.of(lobbyMap[stateKey]);
     dictionary = lobbyMap[dictionaryKey];
     if (lobbyMap[clueKey] != null) {
-      clue = Clue.fromJson(lobbyMap[clueKey]);
+      clue = Clue.fromJson(Map<String, dynamic>.from(lobbyMap[clueKey] as Map));
     } else {
       clue = null;
     }
@@ -200,7 +200,7 @@ class LogEntry {
   LogEntry.fromJson(Map<String, dynamic> lobbyMap) {
     text = lobbyMap[textKey];
     if (lobbyMap[wordKey] != null) {
-      word = Word.fromJson(lobbyMap[wordKey], ''); // we don't need id here
+      word = Word.fromJson(Map<String, dynamic>.from(lobbyMap[wordKey] as Map), ''); // we don't need id here
     } else {
       word = null;
     }

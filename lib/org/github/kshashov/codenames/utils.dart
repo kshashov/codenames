@@ -1,5 +1,6 @@
 import 'package:codenames/org/github/kshashov/codenames/responsive.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
 
 extension PublishSubjectExtension<T> on PublishSubject<T> {
@@ -71,4 +72,34 @@ class Badge extends StatelessWidget {
 
 extension BuildContextExtensions on BuildContext {
   ResponsiveUI get ui => ResponsiveUtils.ui(this);
+
+  get preferHorizontal {
+    final size = MediaQuery.of(this).size;
+    return ui.size == ResponsiveSize.xl || (size.width > size.height);
+  }
+}
+
+Widget CustomTextField(BuildContext context, String label,
+    {Widget? suffix,
+    String? initialValue,
+    TextEditingController? controller,
+    Function(String)? onChanged,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters}) {
+  return TextFormField(
+      style: TextStyle(fontSize: context.ui.fontSize),
+      decoration: InputDecoration(
+          isDense: true,
+          contentPadding: EdgeInsets.all(context.ui.padding),
+          border: const OutlineInputBorder(),
+          labelText: label,
+          suffix: Padding(
+            padding: EdgeInsets.all(context.ui.paddingSmall),
+            child: suffix,
+          )),
+      initialValue: initialValue,
+      onChanged: onChanged,
+      controller: controller,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters);
 }

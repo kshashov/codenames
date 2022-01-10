@@ -35,11 +35,11 @@ class PlayersWrap extends StatelessWidget {
                       title!,
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: context.ui.fontSize),
                     ),
-                  // const SizedBox(height: 10),
                   Padding(
                       padding: EdgeInsets.symmetric(vertical: context.ui.padding * 0.5),
                       child: Wrap(
-                        spacing: context.ui.padding * 0.3,
+                        spacing: context.ui.paddingSmall * 0.3,
+                        runSpacing: context.ui.paddingSmall * 0.3,
                         children: [
                           for (var player in snapshot.requireData)
                             Padding(
@@ -69,6 +69,7 @@ class PlayerChip extends StatelessWidget {
     final bloc = this.context.watch<LobbyBloc>();
 
     Widget chip = Chip(
+        padding: EdgeInsets.all(this.context.ui.paddingSmall * 0.4),
         label: Text(
           player.fullName,
           style: TextStyle(fontSize: this.context.ui.fontSize),

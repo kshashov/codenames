@@ -31,20 +31,16 @@ class LobbySummaryDialog extends StatelessWidget {
       SizedBox(height: context.ui.padding),
       Padding(
           padding: EdgeInsets.symmetric(horizontal: context.ui.padding),
-          child: TextFormField(
-            decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                labelText: 'Your Name:',
-                suffix: TextButton(
-                    onPressed: () {
-                      if (_name.isEmpty) return;
-                      _userBloc.rename(_name);
-                      _lobbyBloc.renameUser(_name);
-                    },
-                    child: const Text('Save'))),
-            initialValue: _name,
-            onChanged: (value) => _name = value,
-          )),
+          child: CustomTextField(context, 'Your Name:',
+              initialValue: _name,
+              onChanged: (value) => _name = value,
+              suffix: InkWell(
+                  onTap: () {
+                    if (_name.isEmpty) return;
+                    _userBloc.rename(_name);
+                    _lobbyBloc.renameUser(_name);
+                  },
+                  child: Text('Save', style: TextStyle(fontSize: context.ui.fontSize))))),
       SizedBox(height: context.ui.padding),
       Padding(
           padding: EdgeInsets.symmetric(horizontal: context.ui.padding),
@@ -81,7 +77,7 @@ class LobbySummaryDialog extends StatelessWidget {
 
     return Dialog(
       elevation: 0,
-      child: SizedBox(width: 400, child: content), // TODO size
+      child: SingleChildScrollView(child: SizedBox(width: 400, child: content)), // TODO size
     );
   }
 
@@ -160,29 +156,28 @@ class _DictionaryFieldState extends State<_DictionaryField> {
       stream: widget._bloc.dictionary,
       builder: (context, snapshot) {
         return Column(children: [
-          TextFormField(
-            decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                labelText: 'Words Pack:',
-                suffix: Wrap(children: [
-                  TextButton(
-                      onPressed: () {
-                        _controller.value = _controller.value.copyWith(text: LobbyBloc.enPackUri);
-                      },
-                      child: const Text('EN')),
-                  TextButton(
-                      onPressed: () {
-                        _controller.value = _controller.value.copyWith(text: LobbyBloc.ruPackUri);
-                      },
-                      child: const Text('RU'))
-                ])),
-            controller: _controller,
-          ),
+          CustomTextField(context, 'Words Pack:',
+              controller: _controller,
+              suffix: Row(mainAxisSize: MainAxisSize.min, children: [
+                InkWell(
+                    onTap: () {
+                      _controller.value = _controller.value.copyWith(text: LobbyBloc.enPackUri);
+                    },
+                    child: Text(
+                      'en',
+                      style: TextStyle(fontSize: context.ui.fontSize),
+                    )),
+                SizedBox(width: context.ui.padding),
+                InkWell(
+                    onTap: () {
+                      _controller.value = _controller.value.copyWith(text: LobbyBloc.ruPackUri);
+                    },
+                    child: Text('ru', style: TextStyle(fontSize: context.ui.fontSize)))
+              ])),
           SizedBox(height: context.ui.padding),
           ElevatedButton(
             onPressed: () async {
               try {
-                print(_controller.text);
                 await widget._bloc.tryStartGame(_controller.text);
               } catch (ex) {
                 fToast.showToast(

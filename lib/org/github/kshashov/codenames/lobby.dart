@@ -52,7 +52,7 @@ class _LobbyPageState extends State<LobbyPage> {
     var redTeam = SeededStreamBuilder<PlayerRole>(
       stream: _bloc.userRole,
       builder: (context, snapshot) => TeamWidget(
-          title: 'RED TEAM',
+          title: 'RED',
           color: Colors.redAccent,
           onBecomeMaster: () => _bloc.becomeRedMaster(),
           onBecomePlayer: () => _bloc.becomeRedPlayer(),
@@ -64,7 +64,7 @@ class _LobbyPageState extends State<LobbyPage> {
     var blueTeam = SeededStreamBuilder<PlayerRole>(
       stream: _bloc.userRole,
       builder: (context, snapshot) => TeamWidget(
-          title: 'BLUE TEAM',
+          title: 'BLUE',
           color: Colors.blueAccent,
           onBecomeMaster: () => _bloc.becomeBlueMaster(),
           onBecomePlayer: () => _bloc.becomeBluePlayer(),
@@ -73,52 +73,27 @@ class _LobbyPageState extends State<LobbyPage> {
           players: _bloc.bluePlayers,
           currentTeam: snapshot.requireData.isBlue),
     );
-    var size = MediaQuery.of(context).size;
 
-    return (context.ui.size == ResponsiveSize.xl || (size.width > size.height))
-        ? horizontal(size, context, redTeam, blueTeam)
-        : vertical(size, context, redTeam, blueTeam);
+    return context.preferHorizontal ? horizontal(context, redTeam, blueTeam) : vertical(context, redTeam, blueTeam);
   }
 
   Widget horizontal(
-    Size size,
     BuildContext context,
     SeededStreamBuilder<PlayerRole> redTeam,
     SeededStreamBuilder<PlayerRole> blueTeam,
   ) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Flexible(
-            fit: FlexFit.tight,
-            flex: 2,
-            child: Column(children: [
-              Container(
-                  margin: EdgeInsets.all(context.ui.padding),
-                  padding: EdgeInsets.all(context.ui.padding),
-                  child: redTeam)
-            ])),
+            fit: FlexFit.tight, flex: 2, child: Container(margin: EdgeInsets.all(context.ui.padding), child: redTeam)),
         Flexible(flex: 6, child: GameWidget()),
-        Flexible(
-            flex: 2,
-            child: Container(
-                margin: EdgeInsets.all(context.ui.padding),
-                padding: EdgeInsets.all(context.ui.padding),
-                child: Column(children: [
-                  blueTeam,
-                  Flexible(
-                      child: SingleChildScrollView(
-                          controller: ScrollController(),
-                          scrollDirection: Axis.vertical,
-                          child: const LogWidget(
-                            alignment: CrossAxisAlignment.start,
-                          )))
-                ])))
+        Flexible(flex: 2, child: Container(margin: EdgeInsets.all(context.ui.padding), child: blueTeam)),
       ],
     );
   }
 
   Widget vertical(
-    Size size,
     BuildContext context,
     SeededStreamBuilder<PlayerRole> redTeam,
     SeededStreamBuilder<PlayerRole> blueTeam,
@@ -130,13 +105,10 @@ class _LobbyPageState extends State<LobbyPage> {
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Flexible(
               flex: 2,
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Container(
-                  margin: EdgeInsets.all(context.ui.padding),
-                  padding: EdgeInsets.all(context.ui.padding),
-                  child: redTeam,
-                )
-              ])),
+              child: Container(
+                margin: EdgeInsets.all(context.ui.padding),
+                child: redTeam,
+              )),
           Flexible(
               flex: 3,
               fit: FlexFit.tight,
@@ -144,18 +116,16 @@ class _LobbyPageState extends State<LobbyPage> {
                   controller: ScrollController(),
                   scrollDirection: Axis.vertical,
                   child: LogWidget(
+                    context: context,
                     alignment:
                         context.ui.size == ResponsiveSize.xs ? CrossAxisAlignment.start : CrossAxisAlignment.center,
                   ))),
           Flexible(
               flex: 2,
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Container(
-                  margin: EdgeInsets.all(context.ui.padding),
-                  padding: EdgeInsets.all(context.ui.padding),
-                  child: blueTeam,
-                )
-              ]))
+              child: Container(
+                margin: EdgeInsets.all(context.ui.padding),
+                child: blueTeam,
+              ))
         ])),
       ],
     );
@@ -170,7 +140,7 @@ class LobbyHeader extends StatelessWidget {
     final savedContext = context;
 
     return Padding(
-        padding: EdgeInsets.all(context.ui.padding),
+        padding: EdgeInsets.zero, //all(context.ui.padding),
         child: Flex(
           direction: Axis.horizontal,
           children: [
@@ -186,17 +156,18 @@ class LobbyHeader extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SeededStreamBuilder<User>(
-                  stream: userBloc.user,
-                  builder: (context, snapshot) => Text("Hello ${snapshot.requireData.name}"),
-                ),
+                if (context.ui.size == ResponsiveSize.xl)
+                  SeededStreamBuilder<User>(
+                    stream: userBloc.user,
+                    builder: (context, snapshot) => Text("Hello ${snapshot.requireData.name}"),
+                  ),
                 FittedBox(
                     fit: BoxFit.fitWidth,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          ((context.ui.size != ResponsiveSize.xs)) ? 'Flutter Codenames Lobby' : 'Codenames Lobby',
+                          (context.ui.size != ResponsiveSize.xs) ? 'Flutter Codenames Lobby' : 'Codenames Lobby',
                           style: TextStyle(fontSize: context.ui.fontSizeBig, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(width: context.ui.padding),
@@ -219,15 +190,29 @@ class LobbyHeader extends StatelessWidget {
                     ))
               ],
             )),
+            if (context.preferHorizontal)
+              Padding(
+                padding: EdgeInsets.all(context.ui.paddingSmall),
+                child: OutlinedButton(
+                    style: ButtonStyle(
+                        shape: MaterialStateProperty.all(
+                            RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.ui.radiusBig))),
+                        padding: MaterialStateProperty.all(EdgeInsets.all(context.ui.padding))),
+                    child: const Text("History", style: const TextStyle(fontWeight: FontWeight.bold)),
+                    onPressed: () => showDialog(
+                          context: savedContext,
+                          builder: (context) => LogWidget.dialog(savedContext, CrossAxisAlignment.start),
+                        )),
+              ),
             Padding(
-              padding: EdgeInsets.all(context.ui.padding),
+              padding: EdgeInsets.all(context.ui.paddingSmall),
               child: SeededStreamBuilder(
                 stream: bloc.online,
                 builder: (context, snapshot) => OutlinedButton.icon(
                     style: ButtonStyle(
                         shape: MaterialStateProperty.all(
                             RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.ui.radiusBig))),
-                        padding: MaterialStateProperty.all(EdgeInsets.all(context.ui.paddingBig))),
+                        padding: MaterialStateProperty.all(EdgeInsets.all(context.ui.padding))),
                     icon: Text(
                       "Online: ${snapshot.data}",
                       style: const TextStyle(fontWeight: FontWeight.bold),
@@ -274,7 +259,8 @@ class TeamWidget extends StatelessWidget {
 
     var content = SeededStreamBuilder<bool>(
         stream: _bloc.locked,
-        builder: (context, locked) => Column(
+        builder: (context, locked) => SingleChildScrollView(
+                child: Column(
               children: [
                 Column(children: [
                   Text(
@@ -331,7 +317,7 @@ class TeamWidget extends StatelessWidget {
                               : const SizedBox.shrink())
                 ]),
               ],
-            ));
+            )));
 
     return Container(
       padding: EdgeInsets.all(context.ui.padding),
@@ -345,7 +331,7 @@ class TeamWidget extends StatelessWidget {
                 blurRadius: context.ui.paddingBig,
                 spreadRadius: context.ui.paddingBig / 3)
           ]),
-      child: content,
+      child: SingleChildScrollView(controller: ScrollController(), scrollDirection: Axis.vertical, child: content),
     );
   }
 }

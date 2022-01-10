@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 
 void main() async {
   // await dotenv.load(fileName: ".env");
+  WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
       options: const FirebaseOptions(
@@ -24,7 +25,6 @@ void main() async {
           appId: '1:51985242347:web:ceca73924f6101fd4486ae',
           measurementId: 'G-SDX834227N'));
 
-  WidgetsFlutterBinding.ensureInitialized();
 
   runApp(MultiProvider(
     providers: [

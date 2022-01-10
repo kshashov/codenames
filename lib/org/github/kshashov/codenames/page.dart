@@ -10,14 +10,16 @@ class CodeNamesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(children: [
+      // appBar: AppBar(),
+      body: SafeArea(
+          child: Column(children: [
         Expanded(child: child),
         Padding(
             padding: EdgeInsets.all(context.ui.paddingSmall),
             child: InkWell(
                 child: const Text('github/kshashov/flutter-codenames'),
                 onTap: () => launch('https://github.com/kshashov/flutter-codenames')))
-      ]),
+      ])),
     );
   }
 }

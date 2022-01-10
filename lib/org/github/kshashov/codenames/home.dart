@@ -15,10 +15,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late String name;
+  late TextEditingController _controller;
 
   @override
   void initState() {
     super.initState();
+    _controller = TextEditingController();
     name = widget.user.name;
   }
 
@@ -29,6 +31,20 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
+          SizedBox(
+              width: 300,
+              child: CustomTextField(
+                context,
+                'Lobby Id',
+                controller: _controller,
+                suffix: InkWell(
+                  child: Text('Find', style: TextStyle(fontSize: context.ui.fontSize)),
+                  onTap: () => Navigator.pushNamed(context, '/lobby/' + _controller.text),
+                ),
+              )),
+          SizedBox(height: context.ui.padding),
+          Text('or', style: TextStyle(fontSize: context.ui.fontSizeBig)),
+          SizedBox(height: context.ui.padding),
           ElevatedButton(
             onPressed: name.isEmpty
                 ? null
@@ -45,5 +61,10 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
   }
 }
