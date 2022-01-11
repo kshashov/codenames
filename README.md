@@ -1,8 +1,8 @@
-# Flutter Codenames  [Play online](https://kshashov.github.io/codenames-web/#/)
+# Flutter Codenames [online](https://kshashov.github.io/codenames-web/#/)
 
 [![Demo](https://img.shields.io/badge/Demo-Online-brightgreen)](https://kshashov.github.io/codenames-web/#/)
 
-A simple implementation of Codenames board game on Flutter & Firebase.
+A simple implementation of [Codenames](https://en.wikipedia.org/wiki/Codenames_(board_game)) board game on [Flutter](https://flutter.dev/) & [Firebase](https://firebase.google.com/).
 
 > The objective of codenames is to correctly guess all of your teams’ code words on the board before the other team does and without guessing the assassin. This is possible because your Spymaster will give you a one-word clue and a number. Using this information and similar clues throughout the game your team will try to interpret the spymaster’s clue and guess each code word.
 
@@ -36,7 +36,6 @@ The user can
 			"text" : "myclue 1"
 		  }
 		},
-		...
 	  },
 	  "players" : {
 		"2ee71670-721c-11ec-bee3-5fa1b7b321f1" : {
@@ -46,20 +45,19 @@ The user can
 		  "online" : false,
 		  "role" : "PlayerRole.redPlayer"
 		},
-		...
 	  },
 	  "words" : [ {
 		  "color" : "WordColor.blue",
 		  "text" : "river"
 		},
-		...
 	  ]
 	}
 	```
 - Open an existing one by it's identifier. The user will be added to a lobby as a spectator or just marked as online if he is already in the `players` collection. When user's app becomes disconnected from Firebase, it marks user's player as offline.
 
-From flutter perspective, it is a very simple application with a couple of screens and Bloc architecture. I use `scoped_model` to propagate all services in entire widgets tree. Services expose multiple reactive streams (I use 'rxdart' library) that are populated in Firebase listeners. And than widgets consume these streams with 'StreamBuilder's.
+From flutter perspective, it is a very simple application with a couple of screens and Bloc architecture. I use `scoped_model` to propagate all services in entire widgets tree. Services expose multiple reactive streams (I use `rxdart` library) that are populated in Firebase listeners. And than widgets consume these streams with `StreamBuilder`s.
 
 There is no unique Web features, so app supports other platforms out of the box. I just created several sets of paddings and font sizes to support different screen resolutions.
-![Android](/docs/codenames_android.png "Android")
+
 ![Android2](/docs/codenames_android2.png "Android2")
+![Android](/docs/codenames_android.png "Android")
