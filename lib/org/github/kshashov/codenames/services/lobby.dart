@@ -29,8 +29,6 @@ class LobbyBloc {
   StreamSubscription<DatabaseEvent>? _wordsSubscription;
   StreamSubscription<DatabaseEvent>? _logSubscription;
 
-  final loading = BehaviorSubject<bool>.seeded(true);
-
   // LOBBY STATE
 
   final host = BehaviorSubject<Player>.seeded(Player.stub());
@@ -64,14 +62,9 @@ class LobbyBloc {
     _logRef = _lobbyRef.child(Lobby.logKey);
 
     _playersRef.child(user.id).onDisconnect().update({Player.onlineKey: false});
-
-    loginAsync().then((value) {
-      // let UI show lobby
-      loading.add(false);
-    });
   }
 
-  loginAsync() async {
+  Future<bool> loginAsync() async {
     var userPlayer = await _playersRef.child(user.id).get();
 
     // 1. add user
@@ -164,6 +157,8 @@ class LobbyBloc {
           event.snapshot.children.map((e) => LogEntry.fromJson(Map<String, dynamic>.from(e.value as Map))).toList();
       this.logs.add(logs);
     });
+
+    return true;
   }
 
   tryStartGame(String dictionaryLink) async {

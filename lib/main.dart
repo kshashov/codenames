@@ -79,16 +79,15 @@ class CodeNamesApp extends StatelessWidget {
                                 return Provider<LobbyBloc>(
                                     create: (context) => LobbyBloc(id: id, user: userSnapshot.requireData),
                                     dispose: (context, value) => value.dispose(),
-                                    builder: (context, child) => StreamBuilder<bool>(
-                                          stream: context.watch<LobbyBloc>().loading,
-                                          builder: (context, loadingSnapshot) =>
-                                              loadingSnapshot.hasData && !loadingSnapshot.requireData
-                                                  ? CodeNamesPage(
-                                                      child: LobbyPage(
-                                                      id: id,
-                                                      user: userSnapshot.requireData,
-                                                    ))
-                                                  : const TextPage('Loading'),
+                                    builder: (context, child) => FutureBuilder(
+                                          future: context.watch<LobbyBloc>().loginAsync(),
+                                          builder: (context, loadingSnapshot) => loadingSnapshot.hasData
+                                              ? CodeNamesPage(
+                                                  child: LobbyPage(
+                                                  id: id,
+                                                  user: userSnapshot.requireData,
+                                                ))
+                                              : const TextPage('Loading'),
                                         ));
                               } else {
                                 return const TextPage('Lobby not found!');

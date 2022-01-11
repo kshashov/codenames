@@ -303,7 +303,7 @@ class TeamWidget extends StatelessWidget {
                   Padding(
                       padding: EdgeInsets.symmetric(horizontal: context.ui.padding),
                       child: PlayersWrap(
-                        title: 'Masters:',
+                        title: 'Spymasters:',
                         players: masters,
                         context: context,
                       )),
