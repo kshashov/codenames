@@ -55,7 +55,7 @@ The user can
 	```
 - Open an existing one by it's identifier. The user will be added to a lobby as a spectator or just marked as online if he is already in the `players` collection. When user's app becomes disconnected from Firebase, it marks user's player as offline.
 
-From flutter perspective, it is a very simple application with a couple of screens and Bloc architecture. I use `scoped_model` to propagate all services in entire widgets tree. Services expose multiple reactive streams (I use `rxdart` library) that are populated in Firebase listeners. And than widgets consume these streams with `StreamBuilder`s.
+From flutter perspective, it is a very simple application with a couple of screens and Bloc architecture. I use `provider` library to propagate all services in entire widgets tree. Services expose multiple reactive streams (I use `rxdart` library) that are populated in Firebase listeners. And than widgets consume these streams with `StreamBuilder`s.
 
 There is no unique Web features, so app supports other platforms out of the box. I just created several sets of paddings and font sizes to support different screen resolutions.
 
