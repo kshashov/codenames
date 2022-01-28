@@ -123,15 +123,29 @@ class WordsWidget extends StatelessWidget {
       opened = false;
     }
 
+    Color? backColor;
+    Border? border;
+    if (role.isMaster && !word.revealed) {
+      border = Border.all(color: color, width: context.ui.paddingSmall * 0.5);
+      backColor = Colors.white;
+      textColor = Colors.black;
+    } else {
+      backColor = color;
+    }
+
     Widget card = Container(
       key: Key(opened.toString()),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(context.ui.radiusBig), color: color, boxShadow: [
-        BoxShadow(
-            offset: Offset.fromDirection(1, 10),
-            color: Theme.of(context).shadowColor,
-            blurRadius: context.ui.paddingBig * 0.7,
-            spreadRadius: context.ui.paddingBig * 0.1)
-      ]),
+      decoration: BoxDecoration(
+          border: border,
+          borderRadius: BorderRadius.circular(context.ui.radiusBig),
+          color: backColor,
+          boxShadow: [
+            BoxShadow(
+                offset: Offset.fromDirection(1, 10),
+                color: Theme.of(context).shadowColor,
+                blurRadius: context.ui.paddingBig * 0.7,
+                spreadRadius: context.ui.paddingBig * 0.1)
+          ]),
       alignment: Alignment.center,
       child: Text(word.text, style: TextStyle(color: textColor, fontSize: context.ui.fontSize)),
     );

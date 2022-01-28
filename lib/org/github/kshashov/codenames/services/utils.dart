@@ -68,6 +68,8 @@ extension GameStateExtensions on GameState {
         return true;
       case GameState.redMastersTurn:
         return true;
+      case GameState.redWon:
+        return true;
       default:
         return false;
     }
@@ -78,6 +80,8 @@ extension GameStateExtensions on GameState {
       case GameState.bluePlayersTurn:
         return true;
       case GameState.blueMastersTurn:
+        return true;
+      case GameState.blueWon:
         return true;
       default:
         return false;
