@@ -88,6 +88,17 @@ extension GameStateExtensions on GameState {
     }
   }
 
+  bool get isEnd {
+    switch (this) {
+      case GameState.blueWon:
+        return true;
+      case GameState.redWon:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   bool get isMaster {
     switch (this) {
       case GameState.redMastersTurn:

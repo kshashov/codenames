@@ -178,10 +178,22 @@ class _DictionaryFieldState extends State<_DictionaryField> {
           ElevatedButton(
             onPressed: () async {
               try {
+                if (_controller.text.isEmpty) {
+                  fToast.showToast(
+                    toastDuration: const Duration(seconds: 3),
+                    child: const Chip(
+                      label: Text(
+                        "Words pack is not specified",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                }
                 await widget._bloc.tryStartGame(_controller.text);
               } catch (ex) {
                 fToast.showToast(
-                  toastDuration: const Duration(seconds: 7),
+                  toastDuration: const Duration(seconds: 5),
                   child: Chip(
                     label: Text(
                       ex.toString(),

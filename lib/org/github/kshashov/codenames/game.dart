@@ -65,7 +65,7 @@ class WordsWidget extends StatelessWidget {
                 crossAxisCount: 5,
                 childAspectRatio: 2.8,
                 children: wordsSnapshot.requireData
-                    .map((e) => wordWidget(context, roleSnapshot.requireData, e, bloc))
+                    .map((e) => wordWidget(context, roleSnapshot.requireData, e, _gameState, bloc))
                     .toList(growable: false),
               );
             }));
@@ -107,11 +107,14 @@ class WordsWidget extends StatelessWidget {
     );
   }
 
-  Widget wordWidget(BuildContext context, PlayerRole role, Word word, LobbyBloc bloc) {
+  Widget wordWidget(BuildContext context, PlayerRole role, Word word, GameState gameState, LobbyBloc bloc) {
     Color color;
     Color textColor;
     bool opened;
-    if (role.isMaster || word.revealed) {
+
+    bool isLikeMaster = role.isMaster || gameState.isEnd;
+
+    if (isLikeMaster || word.revealed) {
       // Opened word
       textColor = Colors.white;
       color = word.color.flutterColor;
@@ -125,11 +128,14 @@ class WordsWidget extends StatelessWidget {
 
     Color? backColor;
     Border? border;
-    if (role.isMaster && !word.revealed) {
+    // Decide should we use color as background or border
+    if (isLikeMaster && !word.revealed) {
+      // Word is not revealed but user is master
       border = Border.all(color: color, width: context.ui.paddingSmall * 0.5);
       backColor = Colors.white;
       textColor = Colors.black;
     } else {
+      // Word is revealed for all
       backColor = color;
     }
 
