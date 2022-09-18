@@ -306,13 +306,17 @@ class LobbyBloc {
 
     var redLeft = redScore.valueOrNull!;
     var blueLeft = blueScore.valueOrNull!;
+    var gameState = state.valueOrNull!;
 
-    await _logRef.push().set(LogEntry(who: user.name, text: 'taps', word: word).toJson());
+    await _logRef
+        .push()
+        .set(LogEntry(who: user.name, text: 'taps', word: word).toJson());
     await _wordsRef.child(word.id).update({Word.revealedKey: true});
 
     // black word = lose
     if (word.color == WordColor.black) {
-      var whoWon = userRole.valueOrNull!.isRed ? GameState.blueWon : GameState.redWon;
+      var whoWon =
+          userRole.valueOrNull!.isRed ? GameState.blueWon : GameState.redWon;
       await _gameRef.update({Game.stateKey: whoWon.toString()});
       return;
     }
@@ -328,7 +332,15 @@ class LobbyBloc {
 
     // increment revealed count
     var clue = this.clue.valueOrNull!;
-    await _gameRef.child(Game.clueKey).update({Clue.openedCountKey: clue.openedCount + 1});
+    await _gameRef
+        .child(Game.clueKey)
+        .update({Clue.openedCountKey: clue.openedCount + 1});
+
+    // end turn if opposite color
+    if (((word.color != WordColor.blue) && gameState.isBlue) ||
+        ((word.color != WordColor.red) && gameState.isRed)) {
+      await endPlayerTurn();
+    }
 
     // end turn if no tries left
     if (clue.openedCount >= clue.count) {
